@@ -1,0 +1,125 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - img "YouTube高清视频下载" [ref=e4]
+      - link "YouTube高清视频下载" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - heading "YouTube高清视频下载" [level=1] [ref=e6]
+      - navigation [ref=e8]:
+        - link "微博秒拍" [ref=e9] [cursor=pointer]:
+          - /url: https://weibo.iiilab.com
+        - link "Twitter" [ref=e10] [cursor=pointer]:
+          - /url: https://twitter.iiilab.com
+        - link "Instagram" [ref=e11] [cursor=pointer]:
+          - /url: https://instagram.iiilab.com
+        - link "Facebook" [ref=e12] [cursor=pointer]:
+          - /url: https://facebook.iiilab.com
+        - link "最右" [ref=e13] [cursor=pointer]:
+          - /url: https://zuiyou.iiilab.com
+        - link "微视" [ref=e14] [cursor=pointer]:
+          - /url: https://weishi.iiilab.com
+        - link "全民K歌" [ref=e15] [cursor=pointer]:
+          - /url: https://kg.iiilab.com
+        - link "全民小视频" [ref=e16] [cursor=pointer]:
+          - /url: https://quanmin.iiilab.com
+        - link "陌陌" [ref=e17] [cursor=pointer]:
+          - /url: https://momo.iiilab.com
+        - link "美拍" [ref=e18] [cursor=pointer]:
+          - /url: https://meipai.iiilab.com
+        - link "Vimeo" [ref=e19] [cursor=pointer]:
+          - /url: https://vimeo.iiilab.com
+        - link "Tumblr" [ref=e20] [cursor=pointer]:
+          - /url: https://tumblr.iiilab.com
+        - link "云音乐" [ref=e21] [cursor=pointer]:
+          - /url: https://yinyue.iiilab.com
+        - link "趣头条" [ref=e22] [cursor=pointer]:
+          - /url: https://quduopai.iiilab.com
+        - link "映客" [ref=e23] [cursor=pointer]:
+          - /url: https://inke.iiilab.com
+        - link "小影" [ref=e24] [cursor=pointer]:
+          - /url: https://xiaoying.iiilab.com
+        - link "梨视频" [ref=e25] [cursor=pointer]:
+          - /url: https://pearvideo.iiilab.com
+        - link "兽音译者" [ref=e26] [cursor=pointer]:
+          - /url: https://roar.iiilab.com
+  - main [ref=e27]:
+    - heading "本站已支持解析下载YouTube、微博、秒拍、绿洲、Twitter、Instagram、Facebook、最右、微视、全民K歌、全民小视频、陌陌、美拍、Vimeo、Tumblr、云音乐、趣头条、映客、小影、梨视频、兽音译者等平台的视频, 请通过页面顶部 导航菜单选择." [level=3] [ref=e28]:
+      - text: 本站已支持解析下载
+      - strong [ref=e29]: YouTube、微博、秒拍、绿洲、Twitter、Instagram、Facebook、最右、微视、全民K歌、全民小视频、陌陌、美拍、Vimeo、Tumblr、云音乐、趣头条、映客、小影、梨视频、兽音译者
+      - text: 等平台的视频, 请通过页面顶部 导航菜单选择.
+    - heading "使用方法" [level=3] [ref=e30]
+    - list [ref=e31]:
+      - listitem [ref=e32]: 在YouTube APP或网站上，找到想要下载的视频，复制视频页面链接
+      - listitem [ref=e33]: 将复制的链接粘贴到下面的输入框，点击解析视频按钮，稍等几秒，解析成功后会返回高清视频地址和视频封面，点击下载即可
+    - generic [ref=e35]:
+      - generic [ref=e36]:
+        - textbox "请将APP/网站复制的链接粘贴到这里" [ref=e37]
+        - img [ref=e38] [cursor=pointer]
+      - button "解析视频" [ref=e42] [cursor=pointer]:
+        - img [ref=e43]
+        - generic [ref=e45]: 解析视频
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - link "YouTube批量下载软件" [ref=e48] [cursor=pointer]:
+          - /url: https://www.henghengmao.net/playlist-downloader?utm_source=iiilab&utm_medium=text_link&utm_content=YouTube%E6%89%B9%E9%87%8F%E4%B8%8B%E8%BD%BD%E8%BD%AF%E4%BB%B6
+        - link "Youtube高清下载手机APP" [ref=e49] [cursor=pointer]:
+          - /url: https://landing.shuiyinyu.com/course/youtube?utm_source=iiilab&utm_medium=text_link&utm_content=Youtube%E9%AB%98%E6%B8%85%E4%B8%8B%E8%BD%BD%E6%89%8B%E6%9C%BAAPP
+        - link "一键访问TikTok等应用" [ref=e50] [cursor=pointer]:
+          - /url: https://www-cn.ygjsq.com/?utm_source=iiilab&utm_medium=text_link&utm_content=%E4%B8%80%E9%94%AE%E8%AE%BF%E9%97%AETikTok%E7%AD%89%E5%BA%94%E7%94%A8#/register?code=QmavK8lr
+        - generic [ref=e51]: 广告
+      - generic [ref=e52]:
+        - link [ref=e53] [cursor=pointer]:
+          - /url: https://www.henghengmao.net/?utm_source=iiilab&utm_medium=banner
+        - link [ref=e54] [cursor=pointer]:
+          - /url: https://www-cn.ygjsq.com/?utm_source=iiilab&utm_medium=banner#/register?code=QmavK8lr
+        - link [ref=e55] [cursor=pointer]:
+          - /url: https://landing.shuiyinyu.com/pages/dashen?utm_source=iiilab&utm_medium=banner
+      - generic [ref=e56] [cursor=pointer]:
+        - generic [ref=e57]:
+          - generic [ref=e58]: 批量下载神器，多种实用工具一站搞定
+          - list [ref=e59]:
+            - listitem [ref=e60]: 更快下载速度
+            - listitem [ref=e61]: 多链接批量下载
+            - listitem [ref=e62]: 用户主页/播放列表批量下载
+            - listitem [ref=e63]: 文案提取
+            - listitem [ref=e64]: 批量修改MD5
+            - listitem [ref=e65]: 批量格式转换
+        - generic [ref=e66]:
+          - button "下载 Mac 版" [ref=e67]:
+            - generic [ref=e68]:
+              - img [ref=e69]
+              - text: 下载 Mac 版
+          - button [ref=e72]:
+            - img [ref=e73]
+        - generic [ref=e75]: 广告
+      - insertion
+    - generic [ref=e76]:
+      - heading "常见疑问" [level=3] [ref=e77]
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - heading "1. Android手机上可以用吗？" [level=4] [ref=e80]
+          - paragraph [ref=e81]: 可以的，Android手机在常用的Chrome、UC、360、QQ等浏览器上都可以很方便的使用本站。推荐使用Chrome浏览器获得最佳下载体验。
+        - generic [ref=e82]:
+          - heading "2. iOS设备（iPhone、iPad、iPod）上点击下载视频按钮后，跳转到视频页面，并没有直接下载，怎么办？" [level=4] [ref=e83]
+          - paragraph [ref=e84]:
+            - text: "因Safari及微信内置浏览器均不支持下载文件，所以保存视频需要借助第三方App来完成下载，建议iOS用户在App Store下载免费的Documents 6，然后在Documents的内置浏览器中使用本站，可以完美下载视频，并且Documents支持将下载的视频移到手机相册。参考:"
+            - link "iPhone上利用Documents下载和管理视频教程" [ref=e85] [cursor=pointer]:
+              - /url: https://www.iiilab.com/article/773264366
+        - generic [ref=e86]:
+          - heading "3. 我在电脑上用的是IE浏览器，点下载视频按钮后，出现跟上面那用iPad的哥们一样的情况，跳转到视频页面，如何下载到本地呢？" [level=4] [ref=e87]
+          - paragraph [ref=e88]: 本站不支持IE浏览器。电脑上少数浏览器不支持直接下载，但可以在下载视频按钮上点击右键，然后选择"目标另存为"或"链接存储为"来下载视频；或者到跳转后的视频页面，在视频画面上点击右键，然后选择"视频另存为"来下载视频。当然，我们更推荐在电脑上使用如谷歌Chrome浏览器、360浏览器极速模式、QQ浏览器极速模式等现代浏览器来获得最佳上网体验。
+        - generic [ref=e89]:
+          - heading "4. 下载后的视频打不开怎么办？" [level=4] [ref=e90]
+          - paragraph [ref=e91]: 这种情况极少发生，一般是文件后缀问题，把下载后的文件后缀名改为.mp4即可播放。
+  - contentinfo [ref=e92]:
+    - paragraph [ref=e93]:
+      - link "💬 电报交流群" [ref=e94] [cursor=pointer]:
+        - /url: https://t.me/snapany
+      - link "👋 Discord交流群" [ref=e95] [cursor=pointer]:
+        - /url: https://discord.gg/UsHKubemMW
+      - link "👨‍💻 解析接口" [ref=e96] [cursor=pointer]:
+        - /url: https://github.com/iiilab-dev/post/wiki
+    - paragraph [ref=e97]: "广告合作、问题或建议反馈联系邮箱: hi@iiilab.com"
+    - paragraph [ref=e98]: 视频归相关网站及作者所有，本站不存储任何视频及图片。
+    - paragraph [ref=e99]: Copyright © 2026 iiiLab
+  - alert [ref=e100]
