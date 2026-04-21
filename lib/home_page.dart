@@ -7,7 +7,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'models/download_models.dart';
-import 'services/youtube_download_service.dart';
+import 'services/video_download_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,7 +18,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _urlController = TextEditingController();
-  final YoutubeDownloadService _service = YoutubeDownloadService();
+  final VideoDownloadService _service = VideoDownloadService();
 
   VideoExtractionResult? _result;
   DownloadReceipt? _lastDownload;
@@ -32,6 +32,12 @@ class _HomePageState extends State<HomePage> {
   bool _isSharing = false;
 
   bool get _supportsDirectOpen => !Platform.isIOS;
+
+  @override
+  void initState() {
+    super.initState();
+    _urlController.text = "https://www.douyin.com/video/7630524865246951866";
+  }
 
   @override
   void dispose() {
@@ -57,7 +63,7 @@ class _HomePageState extends State<HomePage> {
 
     if (_urlController.text.trim().isEmpty) {
       setState(() {
-        _errorMessage = '先粘贴一个 YouTube 视频链接。';
+        _errorMessage = '先粘贴一个 YouTube 或抖音视频链接。';
       });
       return;
     }
@@ -331,7 +337,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          '对等复刻 youtube.iiilab.com 的核心流程：链接校验、流清单解析、封面提取与多格式下载。',
+                          '统一处理 YouTube 和抖音链接：链接校验、元数据提取、封面抓取与下载项生成。',
                           style: TextStyle(
                             color: Color(0xFF4D6172),
                             height: 1.45,
@@ -345,7 +351,7 @@ class _HomePageState extends State<HomePage> {
                           keyboardType: TextInputType.url,
                           decoration: InputDecoration(
                             hintText:
-                                '粘贴 YouTube 视频链接，例如 https://www.youtube.com/watch?v=...',
+                                '粘贴 YouTube / 抖音链接，例如 https://www.youtube.com/watch?v=... 或 https://www.douyin.com/video/...',
                             suffixIcon: IconButton(
                               tooltip: '粘贴剪贴板',
                               onPressed: _pasteUrl,
@@ -554,7 +560,7 @@ class _HeroSection extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _heroChip('YouTube Metadata + Streams'),
+              _heroChip('YouTube + 抖音'),
               _heroChip(isExtracting || isDownloading ? '进行中' : '可直接运行'),
             ],
           ),
@@ -570,7 +576,7 @@ class _HeroSection extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           const Text(
-            '把链接粘进来，解析出封面、可直接播放的视频流、音频流，以及高分辨率视频流下载项。',
+            '把链接粘进来，解析封面和可下载的视频、音频或分享页直链，支持保存到本地、相册和系统分享。',
             style: TextStyle(
               color: Color(0xFFD9E7F5),
               fontSize: 15,
@@ -648,6 +654,10 @@ class _ResultPanel extends StatelessWidget {
               runSpacing: 10,
               children: [
                 _MetaPill(
+                  icon: Icons.link_rounded,
+                  label: result.source.displayName,
+                ),
+                _MetaPill(
                   icon: Icons.person_outline_rounded,
                   label: result.author,
                 ),
@@ -658,7 +668,7 @@ class _ResultPanel extends StatelessWidget {
                   ),
                 _MetaPill(
                   icon: Icons.play_circle_outline_rounded,
-                  label: _compactCount(result.viewCount),
+                  label: result.primaryMetricLabel,
                 ),
               ],
             ),
@@ -675,7 +685,7 @@ class _ResultPanel extends StatelessWidget {
             const SizedBox(height: 18),
             const _SectionTitle(
               title: '快速下载',
-              subtitle: '最常用的三项：直接播放视频、音频和封面。',
+              subtitle: '最常用的下载项，会根据平台能力自动变化。',
             ),
             const SizedBox(height: 12),
             _AssetGrid(
@@ -1118,7 +1128,7 @@ class _FooterNote extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            '如果设备当前网络环境无法访问 YouTube，解析会失败；这一点和网页端本质相同。',
+            '如果设备当前网络环境无法访问目标站点，解析会失败；YouTube 和抖音都会受到当前网络环境影响。',
             style: TextStyle(color: Color(0xFF54697A), height: 1.5),
           ),
         ],
@@ -1137,14 +1147,4 @@ String _formatDuration(Duration duration) {
   }
 
   return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-}
-
-String _compactCount(int value) {
-  if (value >= 100000000) {
-    return '${(value / 100000000).toStringAsFixed(1)}亿播放';
-  }
-  if (value >= 10000) {
-    return '${(value / 10000).toStringAsFixed(1)}万播放';
-  }
-  return '$value 播放';
 }

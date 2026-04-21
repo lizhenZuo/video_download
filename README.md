@@ -1,6 +1,6 @@
 # Tube Fetch
 
-一个用 Flutter 实现的 iOS / Android YouTube 下载器原型，目标是复刻 [youtube.iiilab.com](https://youtube.iiilab.com/) 的核心闭环，而不是把网页直接嵌进 App。
+一个用 Flutter 实现的 iOS / Android 视频下载器原型，目前支持 YouTube 和抖音，目标是复刻 [youtube.iiilab.com](https://youtube.iiilab.com/) 这类工具站的核心闭环，而不是把网页直接嵌进 App。
 
 ## 我对目标站点的分析
 
@@ -17,7 +17,7 @@
    - 多分辨率下载选项
    - 移动端下载提示
 
-这个仓库没有去调用它的私有签名接口，而是改成了 Flutter 端直接解析 YouTube 流清单，原因很明确：
+这个仓库没有去调用它的私有签名接口，而是改成了 App 端自己完成解析，原因很明确：
 
 - 站点接口是私有实现，签名和 header 规则随时可能变。
 - 直接复用第三方私有接口，维护成本高，也不稳。
@@ -25,32 +25,44 @@
 
 ## 当前实现的能力
 
-- 粘贴 YouTube 视频链接
-- 拉取视频标题、作者、时长、播放量、封面
-- 展示可直接播放的视频流
-- 展示独立音频流
-- 展示高分辨率无音轨视频流
-- 下载封面到本地
-- 下载后直接调用系统打开文件
-- iOS 开启 Files 可见性
+- 粘贴 YouTube 或抖音视频链接
+- 自动识别来源平台并走对应解析链路
+- 拉取标题、作者、时长、封面和核心互动指标
+- YouTube:
+  - 展示可直接播放的视频流
+  - 展示独立音频流
+  - 展示高分辨率无音轨视频流
+- 抖音:
+  - 解析分享页 SSR 数据
+  - 提供无水印 MP4、带水印 MP4、封面图下载
+- 下载到本地
+- 保存到系统相册
+- 通过系统分享面板分享文件
+- iOS 开启 Files 可见性和相册权限说明
 - Android 增加网络权限
 
 ## 技术方案
 
 - `youtube_explode_dart`
-  用来获取视频元数据和可下载流清单。
+  用来获取 YouTube 视频元数据和可下载流清单。
+- `dio`
+  用来请求抖音分享页、解析 SSR 数据，以及下载普通 HTTP 文件。
 - `path_provider`
   负责定位下载目录。
 - `open_filex`
-  下载完成后交给系统打开文件。
-- `dio`
-  下载封面图等普通 HTTP 文件。
+  Android 上下载完成后交给系统打开文件。
+- `gal`
+  保存视频或图片到系统相册。
+- `share_plus`
+  调起系统分享面板。
 
 代码结构：
 
 - [lib/main.dart](/Users/zuolizhen/Documents/my_github/video_download/lib/main.dart)
 - [lib/home_page.dart](/Users/zuolizhen/Documents/my_github/video_download/lib/home_page.dart)
 - [lib/models/download_models.dart](/Users/zuolizhen/Documents/my_github/video_download/lib/models/download_models.dart)
+- [lib/services/video_download_service.dart](/Users/zuolizhen/Documents/my_github/video_download/lib/services/video_download_service.dart)
+- [lib/services/douyin_download_service.dart](/Users/zuolizhen/Documents/my_github/video_download/lib/services/douyin_download_service.dart)
 - [lib/services/youtube_download_service.dart](/Users/zuolizhen/Documents/my_github/video_download/lib/services/youtube_download_service.dart)
 
 ## 运行方式
@@ -63,7 +75,9 @@ flutter run
 ## 已知限制
 
 - 如果设备当前网络无法访问 YouTube，解析会失败。
+- 如果设备当前网络无法访问抖音分享页，抖音解析也会失败。
 - 1080p / 4K 常见为无音轨视频流，下载后如果要直接播放，需要再和音频合并。
+- 抖音当前是基于分享页解析，能拿到直连 MP4 和封面，但不提供独立音频和更多清晰度流。
 - 现在的包版本受当前 Flutter SDK 约束，`youtube_explode_webview` 没有接入。
 - `applicationId` 和 iOS bundle id 仍是模板默认值，准备上架前需要换成你自己的。
 

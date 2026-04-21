@@ -1,5 +1,22 @@
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
+enum VideoSource {
+  youtube,
+  douyin,
+}
+
+extension VideoSourceX on VideoSource {
+  String get displayName => switch (this) {
+        VideoSource.youtube => 'YouTube',
+        VideoSource.douyin => '抖音',
+      };
+
+  String get fallbackFilePrefix => switch (this) {
+        VideoSource.youtube => 'youtube-media',
+        VideoSource.douyin => 'douyin-media',
+      };
+}
+
 enum DownloadAssetKind {
   muxedVideo,
   audioOnly,
@@ -9,6 +26,7 @@ enum DownloadAssetKind {
 
 class DownloadAsset {
   const DownloadAsset({
+    required this.source,
     required this.id,
     required this.title,
     required this.subtitle,
@@ -21,6 +39,7 @@ class DownloadAsset {
     this.requiresMuxing = false,
   });
 
+  final VideoSource source;
   final String id;
   final String title;
   final String subtitle;
@@ -35,13 +54,14 @@ class DownloadAsset {
 
 class VideoExtractionResult {
   const VideoExtractionResult({
+    required this.source,
     required this.sourceUrl,
     required this.videoId,
     required this.title,
     required this.author,
     required this.thumbnailUrl,
     required this.duration,
-    required this.viewCount,
+    required this.primaryMetricLabel,
     required this.description,
     required this.quickActions,
     required this.muxedOptions,
@@ -50,13 +70,14 @@ class VideoExtractionResult {
     this.warning,
   });
 
+  final VideoSource source;
   final String sourceUrl;
   final String videoId;
   final String title;
   final String author;
   final Uri thumbnailUrl;
   final Duration? duration;
-  final int viewCount;
+  final String primaryMetricLabel;
   final String description;
   final List<DownloadAsset> quickActions;
   final List<DownloadAsset> muxedOptions;

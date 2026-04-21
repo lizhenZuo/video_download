@@ -1,14 +1,11 @@
-import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 import '../models/download_models.dart';
-
-typedef ProgressReporter = void Function(double progress);
+import 'download_support.dart';
 
 class YoutubeDownloadService {
   YoutubeDownloadService()
@@ -28,7 +25,7 @@ class YoutubeDownloadService {
     final videoId = VideoId.parseVideoId(input);
 
     if (videoId == null) {
-      throw const YoutubeDownloadException('请输入有效的 YouTube 视频链接。');
+      throw const VideoDownloadException('请输入有效的 YouTube 视频链接。');
     }
 
     try {
@@ -37,7 +34,7 @@ class YoutubeDownloadService {
           );
 
       if (video.isLive) {
-        throw const YoutubeDownloadException('直播流暂不支持离线下载。');
+        throw const VideoDownloadException('直播流暂不支持离线下载。');
       }
 
       final manifest = await _getManifestWithFallback(videoId);
@@ -59,6 +56,7 @@ class YoutubeDownloadService {
       final muxedOptions = muxed
           .map(
             (stream) => DownloadAsset(
+              source: VideoSource.youtube,
               id: 'muxed-${stream.tag}',
               title: '视频 ${stream.qualityLabel}',
               subtitle:
@@ -76,6 +74,7 @@ class YoutubeDownloadService {
           .take(4)
           .map(
             (stream) => DownloadAsset(
+              source: VideoSource.youtube,
               id: 'audio-${stream.tag}-${stream.audioTrack?.id ?? 'default'}',
               title: '音频 ${_formatBitrate(stream.bitrate.bitsPerSecond)}',
               subtitle:
@@ -94,6 +93,7 @@ class YoutubeDownloadService {
           .take(8)
           .map(
             (stream) => DownloadAsset(
+              source: VideoSource.youtube,
               id: 'video-only-${stream.tag}',
               title: '高分辨率 ${stream.qualityLabel}',
               subtitle:
@@ -111,10 +111,11 @@ class YoutubeDownloadService {
       if (muxedOptions.isEmpty &&
           audioOptions.isEmpty &&
           videoOnlyOptions.isEmpty) {
-        throw const YoutubeDownloadException('当前视频没有可用下载流。');
+        throw const VideoDownloadException('当前视频没有可用下载流。');
       }
 
       final thumbnailOption = DownloadAsset(
+        source: VideoSource.youtube,
         id: 'thumbnail',
         title: '封面图',
         subtitle: 'JPG · High Resolution',
@@ -132,14 +133,15 @@ class YoutubeDownloadService {
       ];
 
       return VideoExtractionResult(
+        source: VideoSource.youtube,
         sourceUrl: video.url,
         videoId: video.id.value,
         title: video.title,
         author: video.author,
         thumbnailUrl: Uri.parse(video.thumbnails.highResUrl),
         duration: video.duration,
-        viewCount: video.engagement.viewCount,
-        description: _trimDescription(video.description),
+        primaryMetricLabel: _compactCount(video.engagement.viewCount, '播放'),
+        description: trimDescription(video.description),
         quickActions: quickActions,
         muxedOptions: muxedOptions,
         audioOptions: audioOptions,
@@ -148,24 +150,24 @@ class YoutubeDownloadService {
             ? '1080p 以上通常是无音轨视频流，下载后若想直接播放，需要再与音频合并。'
             : null,
       );
-    } on YoutubeDownloadException {
+    } on VideoDownloadException {
       rethrow;
     } on SocketException {
-      throw const YoutubeDownloadException(
+      throw const VideoDownloadException(
         '当前设备无法连接到 YouTube。请先确认网络环境可访问 YouTube，再重试。',
       );
     } on HandshakeException {
-      throw const YoutubeDownloadException(
+      throw const VideoDownloadException(
         '和 YouTube 建立安全连接失败。请检查当前网络或代理配置。',
       );
     } on TimeoutException {
-      throw const YoutubeDownloadException(
+      throw const VideoDownloadException(
         '连接 YouTube 超时。通常是当前网络无法稳定访问 YouTube。',
       );
     } on VideoUnplayableException catch (error) {
-      throw YoutubeDownloadException(_mapUnplayableMessage(error.message));
+      throw VideoDownloadException(_mapUnplayableMessage(error.message));
     } on Exception catch (error) {
-      throw YoutubeDownloadException('解析失败：$error');
+      throw VideoDownloadException('解析失败：$error');
     }
   }
 
@@ -174,8 +176,8 @@ class YoutubeDownloadService {
     required String videoTitle,
     ProgressReporter? onProgress,
   }) async {
-    final fileName = _buildSafeFileName(videoTitle, asset);
-    final primaryDirectory = await _resolveOutputDirectory(preferShared: true);
+    final fileName = buildSafeFileName(videoTitle, asset);
+    final primaryDirectory = await resolveOutputDirectory(preferShared: true);
 
     try {
       return await _downloadToDirectory(
@@ -185,7 +187,7 @@ class YoutubeDownloadService {
         onProgress: onProgress,
       );
     } on FileSystemException {
-      final fallbackDirectory = await _resolveOutputDirectory(
+      final fallbackDirectory = await resolveOutputDirectory(
         preferShared: false,
       );
 
@@ -232,7 +234,7 @@ class YoutubeDownloadService {
         },
       );
     } else {
-      throw const YoutubeDownloadException('下载项缺少可用的文件地址。');
+      throw const VideoDownloadException('下载项缺少可用的文件地址。');
     }
 
     return DownloadReceipt(
@@ -266,27 +268,6 @@ class YoutubeDownloadService {
     }
   }
 
-  Future<Directory> _resolveOutputDirectory(
-      {required bool preferShared}) async {
-    Directory? baseDirectory;
-
-    if (preferShared) {
-      if (Platform.isAndroid) {
-        baseDirectory = await getExternalStorageDirectory();
-      } else if (!Platform.isIOS) {
-        baseDirectory = await getDownloadsDirectory();
-      }
-    }
-
-    baseDirectory ??= await getApplicationDocumentsDirectory();
-
-    final directory = Directory('${baseDirectory.path}/TubeFetch');
-    if (!await directory.exists()) {
-      await directory.create(recursive: true);
-    }
-    return directory;
-  }
-
   void dispose() {
     _dio.close(force: true);
     _yt.close();
@@ -306,55 +287,6 @@ class YoutubeDownloadService {
     return result;
   }
 
-  String _sanitizeFileName(String input) {
-    final cleaned = input
-        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-
-    if (cleaned.isEmpty) {
-      return 'youtube-media';
-    }
-
-    return cleaned.length > 80 ? cleaned.substring(0, 80).trim() : cleaned;
-  }
-
-  String _buildSafeFileName(String videoTitle, DownloadAsset asset) {
-    final safeTitle = _sanitizeFileName(videoTitle);
-    final safeStem = _sanitizeFileName(asset.fileStem);
-    final extension = '.${asset.fileExtension}';
-    final suffix = '-$safeStem';
-    const maxFileNameBytes = 180;
-    final reservedBytes = utf8.encode('$suffix$extension').length;
-    final titleBudget = maxFileNameBytes - reservedBytes;
-    final truncatedTitle = _truncateUtf8(
-      safeTitle.isEmpty ? 'youtube-media' : safeTitle,
-      titleBudget > 24 ? titleBudget : 24,
-    );
-
-    return '$truncatedTitle$suffix$extension';
-  }
-
-  String _truncateUtf8(String input, int maxBytes) {
-    if (utf8.encode(input).length <= maxBytes) {
-      return input;
-    }
-
-    final buffer = StringBuffer();
-
-    for (final rune in input.runes) {
-      final char = String.fromCharCode(rune);
-      final candidate = '$buffer$char';
-      if (utf8.encode(candidate).length > maxBytes) {
-        break;
-      }
-      buffer.write(char);
-    }
-
-    final result = buffer.toString().trim();
-    return result.isEmpty ? 'youtube-media' : result;
-  }
-
   String _slug(String input) => input
       .toLowerCase()
       .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
@@ -367,14 +299,6 @@ class YoutubeDownloadService {
     }
     final kbps = bitsPerSecond / 1024;
     return '${kbps.toStringAsFixed(kbps >= 100 ? 0 : 1)} kbps';
-  }
-
-  String _trimDescription(String description) {
-    final normalized = description.replaceAll(RegExp(r'\s+'), ' ').trim();
-    if (normalized.length <= 180) {
-      return normalized;
-    }
-    return '${normalized.substring(0, 180).trim()}...';
   }
 
   Future<StreamManifest> _getManifestWithFallback(String videoId) async {
@@ -419,7 +343,7 @@ class YoutubeDownloadService {
       throw error;
     }
 
-    throw const YoutubeDownloadException('当前视频没有可用下载流。');
+    throw const VideoDownloadException('当前视频没有可用下载流。');
   }
 
   String _mapUnplayableMessage(String rawMessage) {
@@ -447,13 +371,14 @@ class YoutubeDownloadService {
 
     return '当前视频不可播放，或者当前网络环境无法直接拿到 YouTube 媒体流。';
   }
-}
 
-class YoutubeDownloadException implements Exception {
-  const YoutubeDownloadException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => message;
+  String _compactCount(int value, String suffix) {
+    if (value >= 100000000) {
+      return '${(value / 100000000).toStringAsFixed(1)}亿$suffix';
+    }
+    if (value >= 10000) {
+      return '${(value / 10000).toStringAsFixed(1)}万$suffix';
+    }
+    return '$value $suffix';
+  }
 }
