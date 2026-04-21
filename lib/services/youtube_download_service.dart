@@ -32,21 +32,15 @@ class YoutubeDownloadService {
     }
 
     try {
-      final video = await _yt.videos.get(videoId);
+      final video = await _yt.videos.get(videoId).timeout(
+            const Duration(seconds: 15),
+          );
 
       if (video.isLive) {
         throw const YoutubeDownloadException('直播流暂不支持离线下载。');
       }
 
-      final manifest = await _yt.videos.streamsClient.getManifest(
-        videoId,
-        ytClients: [
-          YoutubeApiClient.android,
-          YoutubeApiClient.ios,
-          YoutubeApiClient.androidVr,
-          YoutubeApiClient.tv,
-        ],
-      ).timeout(const Duration(seconds: 20));
+      final manifest = await _getManifestWithFallback(videoId);
 
       final muxed = _uniqueBy(
         manifest.muxed.sortByVideoQuality(),
@@ -381,6 +375,51 @@ class YoutubeDownloadService {
       return normalized;
     }
     return '${normalized.substring(0, 180).trim()}...';
+  }
+
+  Future<StreamManifest> _getManifestWithFallback(String videoId) async {
+    final attempts = <({
+      String label,
+      List<YoutubeApiClient> clients,
+      Duration timeout,
+    })>[
+      (
+        label: 'android',
+        clients: [YoutubeApiClient.android],
+        timeout: const Duration(seconds: 18),
+      ),
+      (
+        label: 'androidVr',
+        clients: [YoutubeApiClient.androidVr],
+        timeout: const Duration(seconds: 18),
+      ),
+      (
+        label: 'tv',
+        clients: [YoutubeApiClient.tv],
+        timeout: const Duration(seconds: 22),
+      ),
+    ];
+
+    Object? lastError;
+
+    for (final attempt in attempts) {
+      try {
+        return await _yt.videos.streamsClient
+            .getManifest(videoId, ytClients: attempt.clients)
+            .timeout(attempt.timeout);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (lastError case Exception exception) {
+      throw exception;
+    }
+    if (lastError case Error error) {
+      throw error;
+    }
+
+    throw const YoutubeDownloadException('当前视频没有可用下载流。');
   }
 
   String _mapUnplayableMessage(String rawMessage) {
