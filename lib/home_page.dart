@@ -554,7 +554,6 @@ class _HeroSection extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _heroChip('Flutter / iOS / Android'),
               _heroChip('YouTube Metadata + Streams'),
               _heroChip(isExtracting || isDownloading ? '进行中' : '可直接运行'),
             ],
@@ -1114,7 +1113,7 @@ class _FooterNote extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            '这个 Flutter 版本复刻的是站点的核心能力，不是把网页嵌进去：输入链接、拿到视频元数据、展示下载项、保存到本地。',
+            '这个版本复刻的是站点的核心能力，不是把网页嵌进去：输入链接、拿到视频元数据、展示下载项、保存到本地。',
             style: TextStyle(color: Color(0xFF54697A), height: 1.5),
           ),
           SizedBox(height: 8),
