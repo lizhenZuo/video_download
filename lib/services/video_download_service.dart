@@ -1,29 +1,41 @@
 import '../models/download_models.dart';
+import 'bilibili_download_service.dart';
 import 'direct_download_service.dart';
 import 'douyin_download_service.dart';
 import 'download_support.dart';
+import 'iiilab_download_service.dart';
+import 'snapany_download_service.dart';
 import 'youtube_download_service.dart';
 
 class VideoDownloadService {
   VideoDownloadService()
       : _youtube = YoutubeDownloadService(),
         _douyin = DouyinDownloadService(),
+        _bilibili = BilibiliDownloadService(),
+        _snapany = SnapAnyDownloadService(),
+        _iiilab = IiilabDownloadService(),
         _direct = DirectDownloadService();
 
   final YoutubeDownloadService _youtube;
   final DouyinDownloadService _douyin;
+  final BilibiliDownloadService _bilibili;
+  final SnapAnyDownloadService _snapany;
+  final IiilabDownloadService _iiilab;
   final DirectDownloadService _direct;
 
   Future<VideoExtractionResult> extract(String rawInput) async {
     final normalizedInput = _extractFirstUrl(rawInput);
 
     if (normalizedInput == null) {
-      throw const VideoDownloadException('请输入有效的 YouTube 或抖音视频链接。');
+      throw const VideoDownloadException('请输入有效的视频链接。');
     }
 
     return switch (_detectSource(normalizedInput)) {
       VideoSource.youtube => _youtube.extract(normalizedInput),
       VideoSource.douyin => _douyin.extract(normalizedInput),
+      VideoSource.bilibili => _bilibili.extract(normalizedInput),
+      VideoSource.snapany => _snapany.extract(normalizedInput),
+      VideoSource.iiilab => _iiilab.extract(normalizedInput),
     };
   }
 
@@ -50,6 +62,9 @@ class VideoDownloadService {
   void dispose() {
     _youtube.dispose();
     _douyin.dispose();
+    _bilibili.dispose();
+    _snapany.dispose();
+    _iiilab.dispose();
     _direct.dispose();
   }
 
@@ -83,6 +98,20 @@ class VideoDownloadService {
       return VideoSource.douyin;
     }
 
-    throw const VideoDownloadException('当前只支持 YouTube 和抖音视频链接。');
+    if (host.contains('bilibili.com') || host == 'b23.tv') {
+      return VideoSource.bilibili;
+    }
+
+    if (_snapany.canHandle(uri)) {
+      return VideoSource.snapany;
+    }
+
+    if (_iiilab.canHandle(uri)) {
+      return VideoSource.iiilab;
+    }
+
+    throw VideoDownloadException(
+      '当前只支持 YouTube、抖音、哔哩哔哩，以及 iiilab / SnapAny 当前公开支持的 TikTok、Twitter、Instagram、Facebook、Vimeo、Threads 等平台链接。',
+    );
   }
 }

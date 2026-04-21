@@ -90,3 +90,11 @@ String trimDescription(String description) {
   }
   return '${normalized.substring(0, 180).trim()}...';
 }
+
+Uri preferSecureUri(Uri uri) {
+  if (uri.scheme.toLowerCase() != 'http') {
+    return uri;
+  }
+
+  return uri.replace(scheme: 'https');
+}

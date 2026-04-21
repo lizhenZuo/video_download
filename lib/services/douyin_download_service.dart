@@ -131,6 +131,7 @@ class DouyinDownloadService {
 
       return VideoExtractionResult(
         source: VideoSource.douyin,
+        platformLabel: '抖音',
         sourceUrl: sourceUrl,
         videoId: videoId.isEmpty ? sourceUrl : videoId,
         title: title.isEmpty ? '抖音视频' : title,
@@ -143,6 +144,7 @@ class DouyinDownloadService {
         muxedOptions: [cleanVideo, watermarkedVideo],
         audioOptions: const [],
         videoOnlyOptions: const [],
+        imageOptions: [thumbnailAsset],
         warning: '当前通过抖音分享页解析，只提供直连 MP4 视频和封面图；独立音频与更多清晰度暂不提供。',
       );
     } on VideoDownloadException {

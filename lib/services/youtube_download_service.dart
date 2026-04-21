@@ -134,6 +134,7 @@ class YoutubeDownloadService {
 
       return VideoExtractionResult(
         source: VideoSource.youtube,
+        platformLabel: 'YouTube',
         sourceUrl: video.url,
         videoId: video.id.value,
         title: video.title,
@@ -146,6 +147,7 @@ class YoutubeDownloadService {
         muxedOptions: muxedOptions,
         audioOptions: audioOptions,
         videoOnlyOptions: videoOnlyOptions,
+        imageOptions: [thumbnailOption],
         warning: videoOnlyOptions.isNotEmpty
             ? '1080p 以上通常是无音轨视频流，下载后若想直接播放，需要再与音频合并。'
             : null,

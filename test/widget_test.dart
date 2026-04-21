@@ -8,7 +8,7 @@ void main() {
     await tester.pumpWidget(const MyApp());
 
     expect(find.text('Tube Fetch'), findsOneWidget);
-    expect(find.textContaining('YouTube / 抖音链接'), findsOneWidget);
+    expect(find.textContaining('粘贴视频链接'), findsOneWidget);
     expect(find.text('解析视频'), findsNWidgets(2));
     expect(find.byType(TextField), findsOneWidget);
   });

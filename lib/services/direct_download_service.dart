@@ -72,6 +72,7 @@ class DirectDownloadService {
     await _dio.download(
       url.toString(),
       file.path,
+      options: Options(headers: asset.headers),
       onReceiveProgress: (received, total) {
         if (total <= 0 || onProgress == null) {
           return;

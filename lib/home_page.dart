@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
@@ -36,7 +38,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _urlController.text = "https://www.douyin.com/video/7630524865246951866";
+
+    _urlController.text = "https://www.bilibili.com/video/BV1x2doBCEyT/?spm_id_from=333.1007.tianma.4-2-12.click&vd_source=cf5cfc2f23f57fe28c14476456838ca4";
   }
 
   @override
@@ -63,7 +66,7 @@ class _HomePageState extends State<HomePage> {
 
     if (_urlController.text.trim().isEmpty) {
       setState(() {
-        _errorMessage = '先粘贴一个 YouTube 或抖音视频链接。';
+        _errorMessage = '先粘贴一个视频链接。';
       });
       return;
     }
@@ -337,7 +340,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          '统一处理 YouTube 和抖音链接：链接校验、元数据提取、封面抓取与下载项生成。',
+                          '统一处理 YouTube、抖音，以及 iiilab / SnapAny 当前公开支持的 TikTok、Bilibili、Twitter、Instagram、Facebook、Vimeo、Threads 等平台链接。',
                           style: TextStyle(
                             color: Color(0xFF4D6172),
                             height: 1.45,
@@ -351,7 +354,7 @@ class _HomePageState extends State<HomePage> {
                           keyboardType: TextInputType.url,
                           decoration: InputDecoration(
                             hintText:
-                                '粘贴 YouTube / 抖音链接，例如 https://www.youtube.com/watch?v=... 或 https://www.douyin.com/video/...',
+                                '粘贴视频链接，例如 YouTube、抖音、TikTok、Bilibili、微博、Twitter、Instagram、Facebook、Vimeo...',
                             suffixIcon: IconButton(
                               tooltip: '粘贴剪贴板',
                               onPressed: _pasteUrl,
@@ -560,7 +563,7 @@ class _HeroSection extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _heroChip('YouTube + 抖音'),
+              _heroChip('YouTube + 抖音 + 多平台'),
               _heroChip(isExtracting || isDownloading ? '进行中' : '可直接运行'),
             ],
           ),
@@ -576,7 +579,7 @@ class _HeroSection extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           const Text(
-            '把链接粘进来，解析封面和可下载的视频、音频或分享页直链，支持保存到本地、相册和系统分享。',
+            '把链接粘进来，解析封面和可下载的视频、音频、图片或分享页直链，支持保存到本地、相册和系统分享。',
             style: TextStyle(
               color: Color(0xFFD9E7F5),
               fontSize: 15,
@@ -633,9 +636,9 @@ class _ResultPanel extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: Image.network(
-                  result.thumbnailUrl.toString(),
-                  fit: BoxFit.cover,
+                child: _RemotePreviewImage(
+                  url: result.thumbnailUrl,
+                  headers: result.thumbnailHeaders,
                 ),
               ),
             ),
@@ -655,7 +658,7 @@ class _ResultPanel extends StatelessWidget {
               children: [
                 _MetaPill(
                   icon: Icons.link_rounded,
-                  label: result.source.displayName,
+                  label: result.platformLabel,
                 ),
                 _MetaPill(
                   icon: Icons.person_outline_rounded,
@@ -736,6 +739,20 @@ class _ResultPanel extends StatelessWidget {
                 downloadProgress: downloadProgress,
               ),
             ],
+            if (result.imageOptions.isNotEmpty) ...[
+              const SizedBox(height: 22),
+              const _SectionTitle(
+                title: '图片 / 封面下载',
+                subtitle: '图集原图、封面图会统一放在这里。',
+              ),
+              const SizedBox(height: 12),
+              _AssetGrid(
+                assets: result.imageOptions,
+                onTap: onDownload,
+                downloadingAssetId: downloadingAssetId,
+                downloadProgress: downloadProgress,
+              ),
+            ],
             if (result.warning != null) ...[
               const SizedBox(height: 18),
               _MessageCard(
@@ -747,6 +764,136 @@ class _ResultPanel extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RemotePreviewImage extends StatefulWidget {
+  const _RemotePreviewImage({
+    required this.url,
+    this.headers,
+  });
+
+  final Uri url;
+  final Map<String, String>? headers;
+
+  @override
+  State<_RemotePreviewImage> createState() => _RemotePreviewImageState();
+}
+
+class _RemotePreviewImageState extends State<_RemotePreviewImage> {
+  Future<Uint8List>? _imageBytesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _imageBytesFuture = _loadImageBytes();
+  }
+
+  @override
+  void didUpdateWidget(covariant _RemotePreviewImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url ||
+        !_sameHeaders(oldWidget.headers, widget.headers)) {
+      _imageBytesFuture = _loadImageBytes();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Uint8List>(
+      future: _imageBytesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return Image.memory(
+            snapshot.data!,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            color: const Color(0xFFE6EDF3),
+            alignment: Alignment.center,
+            child: const SizedBox(
+              width: 26,
+              height: 26,
+              child: CircularProgressIndicator(strokeWidth: 2.4),
+            ),
+          );
+        }
+
+        return _buildFailedPlaceholder();
+      },
+    );
+  }
+
+  Future<Uint8List> _loadImageBytes() async {
+    final client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
+
+    try {
+      final request = await client.getUrl(widget.url);
+      widget.headers?.forEach((key, value) {
+        request.headers.set(key, value);
+      });
+
+      final response = await request.close().timeout(
+            const Duration(seconds: 20),
+          );
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw HttpException(
+          'Image request failed with status ${response.statusCode}',
+          uri: widget.url,
+        );
+      }
+
+      final bytes = BytesBuilder(copy: false);
+      await for (final chunk in response.timeout(const Duration(seconds: 20))) {
+        bytes.add(chunk);
+      }
+
+      final imageBytes = bytes.takeBytes();
+      if (imageBytes.isEmpty) {
+        throw const FileSystemException('Image response was empty');
+      }
+
+      return imageBytes;
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  bool _sameHeaders(
+    Map<String, String>? left,
+    Map<String, String>? right,
+  ) {
+    return mapEquals(left, right);
+  }
+
+  Widget _buildFailedPlaceholder() {
+    return Container(
+      color: const Color(0xFFE6EDF3),
+      alignment: Alignment.center,
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.broken_image_outlined,
+            color: Color(0xFF5D7284),
+            size: 34,
+          ),
+          SizedBox(height: 10),
+          Text(
+            '封面加载失败',
+            style: TextStyle(
+              color: Color(0xFF5D7284),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -813,6 +960,7 @@ class _AssetCard extends StatelessWidget {
       DownloadAssetKind.muxedVideo => const Color(0xFF0F6CBA),
       DownloadAssetKind.audioOnly => const Color(0xFFCB5D2C),
       DownloadAssetKind.videoOnly => const Color(0xFF334B65),
+      DownloadAssetKind.image => const Color(0xFF2E8B57),
       DownloadAssetKind.thumbnail => const Color(0xFF2E8B57),
     };
 
@@ -820,6 +968,7 @@ class _AssetCard extends StatelessWidget {
       DownloadAssetKind.muxedVideo => Icons.movie_creation_outlined,
       DownloadAssetKind.audioOnly => Icons.headphones_outlined,
       DownloadAssetKind.videoOnly => Icons.high_quality_outlined,
+      DownloadAssetKind.image => Icons.collections_outlined,
       DownloadAssetKind.thumbnail => Icons.image_outlined,
     };
 
@@ -1128,7 +1277,7 @@ class _FooterNote extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            '如果设备当前网络环境无法访问目标站点，解析会失败；YouTube 和抖音都会受到当前网络环境影响。',
+            '当前已接入 YouTube、抖音，以及 iiilab / SnapAny 当前公开支持的 TikTok、Bilibili、微博、Twitter、Instagram、Facebook、Vimeo、Threads 等平台。不同平台的直链都有时效，解析后建议尽快下载。',
             style: TextStyle(color: Color(0xFF54697A), height: 1.5),
           ),
         ],

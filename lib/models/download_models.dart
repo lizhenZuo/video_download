@@ -3,17 +3,26 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 enum VideoSource {
   youtube,
   douyin,
+  bilibili,
+  iiilab,
+  snapany,
 }
 
 extension VideoSourceX on VideoSource {
   String get displayName => switch (this) {
         VideoSource.youtube => 'YouTube',
         VideoSource.douyin => '抖音',
+        VideoSource.bilibili => '哔哩哔哩',
+        VideoSource.iiilab => 'iiilab',
+        VideoSource.snapany => 'SnapAny',
       };
 
   String get fallbackFilePrefix => switch (this) {
         VideoSource.youtube => 'youtube-media',
         VideoSource.douyin => 'douyin-media',
+        VideoSource.bilibili => 'bilibili-media',
+        VideoSource.iiilab => 'iiilab-media',
+        VideoSource.snapany => 'snapany-media',
       };
 }
 
@@ -21,6 +30,7 @@ enum DownloadAssetKind {
   muxedVideo,
   audioOnly,
   videoOnly,
+  image,
   thumbnail,
 }
 
@@ -36,6 +46,7 @@ class DownloadAsset {
     required this.sizeInBytes,
     this.streamInfo,
     this.url,
+    this.headers,
     this.requiresMuxing = false,
   });
 
@@ -49,12 +60,14 @@ class DownloadAsset {
   final int sizeInBytes;
   final StreamInfo? streamInfo;
   final Uri? url;
+  final Map<String, String>? headers;
   final bool requiresMuxing;
 }
 
 class VideoExtractionResult {
   const VideoExtractionResult({
     required this.source,
+    required this.platformLabel,
     required this.sourceUrl,
     required this.videoId,
     required this.title,
@@ -67,10 +80,13 @@ class VideoExtractionResult {
     required this.muxedOptions,
     required this.audioOptions,
     required this.videoOnlyOptions,
+    required this.imageOptions,
+    this.thumbnailHeaders,
     this.warning,
   });
 
   final VideoSource source;
+  final String platformLabel;
   final String sourceUrl;
   final String videoId;
   final String title;
@@ -83,6 +99,8 @@ class VideoExtractionResult {
   final List<DownloadAsset> muxedOptions;
   final List<DownloadAsset> audioOptions;
   final List<DownloadAsset> videoOnlyOptions;
+  final List<DownloadAsset> imageOptions;
+  final Map<String, String>? thumbnailHeaders;
   final String? warning;
 }
 
@@ -100,6 +118,7 @@ class DownloadReceipt {
   bool get canSaveToGallery => switch (asset.kind) {
         DownloadAssetKind.muxedVideo => true,
         DownloadAssetKind.videoOnly => true,
+        DownloadAssetKind.image => true,
         DownloadAssetKind.thumbnail => true,
         DownloadAssetKind.audioOnly => false,
       };
@@ -108,6 +127,7 @@ class DownloadReceipt {
         DownloadAssetKind.muxedVideo => true,
         DownloadAssetKind.videoOnly => true,
         DownloadAssetKind.audioOnly => false,
+        DownloadAssetKind.image => false,
         DownloadAssetKind.thumbnail => false,
       };
 }
