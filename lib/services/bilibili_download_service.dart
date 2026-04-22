@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/download_models.dart';
 import 'download_support.dart';
 
@@ -54,11 +55,14 @@ class BilibiliDownloadService {
   final Dio _dio;
 
   Future<VideoExtractionResult> extract(String rawInput) async {
+    final l10n = AppLocalizations.current;
     final input = rawInput.trim();
     final rawUri = Uri.tryParse(input);
 
     if (rawUri == null || rawUri.scheme.isEmpty || rawUri.host.isEmpty) {
-      throw const VideoDownloadException('请输入有效的哔哩哔哩视频链接。');
+      throw VideoDownloadException(
+        l10n.invalidPlatformUrl(l10n.platformName('bilibili')),
+      );
     }
 
     try {
@@ -78,14 +82,14 @@ class BilibiliDownloadService {
 
       final html = response.data ?? '';
       if (html.isEmpty) {
-        throw const VideoDownloadException('哔哩哔哩页面没有返回可解析内容。');
+        throw VideoDownloadException(l10n.bilibiliNoPageContent);
       }
 
       final state = extractBilibiliInitialState(html);
       final video = _asMap(state['video']);
       final viewInfo = _asMap(video?['viewInfo']);
       if (viewInfo == null) {
-        throw const VideoDownloadException('当前哔哩哔哩页面没有可用的视频信息。');
+        throw VideoDownloadException(l10n.bilibiliNoVideoInfo);
       }
 
       final playItems = _asList(video?['playUrlInfo'])
@@ -93,7 +97,7 @@ class BilibiliDownloadService {
           .whereType<Map<String, dynamic>>()
           .toList(growable: false);
       if (playItems.isEmpty) {
-        throw const VideoDownloadException('当前哔哩哔哩视频没有可用的下载地址。');
+        throw VideoDownloadException(l10n.bilibiliNoDownloadAddress);
       }
 
       final bvid = '${viewInfo['bvid'] ?? ''}'.trim();
@@ -107,14 +111,18 @@ class BilibiliDownloadService {
           .whereType<Map<String, dynamic>>()
           .toList(growable: false);
 
-      final title = '${viewInfo['title'] ?? '哔哩哔哩视频'}'.trim();
-      final author = '${owner?['name'] ?? '哔哩哔哩作者'}'.trim();
+      final title =
+          '${viewInfo['title'] ?? l10n.contentTitle(l10n.platformName('bilibili'))}'
+              .trim();
+      final author =
+          '${owner?['name'] ?? l10n.defaultAuthor(l10n.platformName('bilibili'))}'
+              .trim();
       final description = '${viewInfo['desc'] ?? ''}'.trim();
       final durationSeconds = _asInt(viewInfo['duration']);
 
       final thumbnailUrl = _parseSecureUri(viewInfo['pic']) ??
           _parseSecureUri(pages.firstOrNull?['first_frame']) ??
-          (throw const VideoDownloadException('当前哔哩哔哩视频没有可用封面。'));
+          (throw VideoDownloadException(l10n.bilibiliNoCover));
 
       final muxedOptions = <DownloadAsset>[];
       final addedVideoUrls = <String>{};
@@ -132,9 +140,11 @@ class BilibiliDownloadService {
           DownloadAsset(
             source: VideoSource.bilibili,
             id: 'bilibili-video-$order',
-            title: muxedOptions.isEmpty ? '视频' : '视频 ${muxedOptions.length + 1}',
+            title: muxedOptions.isEmpty
+                ? l10n.videoTitle
+                : l10n.videoTitleWithIndex(muxedOptions.length + 1),
             subtitle:
-                '${_extensionLabel(extension)} · 带音轨直链$durationLabel',
+                '${_extensionLabel(extension)} · ${l10n.withAudioTrack} · ${l10n.directLink}$durationLabel',
             fileStem: muxedOptions.isEmpty
                 ? 'video'
                 : 'video-${muxedOptions.length + 1}',
@@ -148,16 +158,16 @@ class BilibiliDownloadService {
       }
 
       if (muxedOptions.isEmpty) {
-        throw const VideoDownloadException('当前哔哩哔哩视频没有可用的视频流。');
+        throw VideoDownloadException(l10n.bilibiliNoVideoStream);
       }
 
       final imageOptions = <DownloadAsset>[
         DownloadAsset(
           source: VideoSource.bilibili,
           id: 'bilibili-cover',
-          title: '封面图',
+          title: l10n.coverTitle,
           subtitle:
-              '${_extensionLabel(_fileExtensionForUrl(thumbnailUrl, fallback: 'jpg'))} · 页面封面',
+              '${_extensionLabel(_fileExtensionForUrl(thumbnailUrl, fallback: 'jpg'))} · ${l10n.pageCover}',
           fileStem: 'cover',
           fileExtension: _fileExtensionForUrl(thumbnailUrl, fallback: 'jpg'),
           kind: DownloadAssetKind.thumbnail,
@@ -173,9 +183,9 @@ class BilibiliDownloadService {
           DownloadAsset(
             source: VideoSource.bilibili,
             id: 'bilibili-first-frame',
-            title: '首帧图',
+            title: l10n.firstFrameTitle,
             subtitle:
-                '${_extensionLabel(_fileExtensionForUrl(firstFrame, fallback: 'jpg'))} · 页面首帧',
+                '${_extensionLabel(_fileExtensionForUrl(firstFrame, fallback: 'jpg'))} · ${l10n.pageFirstFrame}',
             fileStem: 'first-frame',
             fileExtension: _fileExtensionForUrl(firstFrame, fallback: 'jpg'),
             kind: DownloadAssetKind.image,
@@ -196,16 +206,20 @@ class BilibiliDownloadService {
 
       return VideoExtractionResult(
         source: VideoSource.bilibili,
-        platformLabel: '哔哩哔哩',
+        platformLabel: l10n.platformName('bilibili'),
         sourceUrl: sourceUrl,
         videoId: bvid.isEmpty ? sourceUrl : bvid,
-        title: title.isEmpty ? '哔哩哔哩视频' : title,
-        author: author.isEmpty ? '哔哩哔哩作者' : author,
+        title: title.isEmpty
+            ? l10n.contentTitle(l10n.platformName('bilibili'))
+            : title,
+        author: author.isEmpty
+            ? l10n.defaultAuthor(l10n.platformName('bilibili'))
+            : author,
         thumbnailUrl: thumbnailUrl,
         duration: durationSeconds > 0 ? Duration(seconds: durationSeconds) : null,
         primaryMetricLabel: viewCount > 0
-            ? _compactCount(viewCount, '播放')
-            : '${muxedOptions.length} 个下载项',
+            ? l10n.metricLabel(viewCount, MetricKind.views)
+            : l10n.downloadItemsCount(muxedOptions.length),
         description: trimDescription(description.isEmpty ? title : description),
         quickActions: quickActions,
         muxedOptions: muxedOptions,
@@ -213,18 +227,25 @@ class BilibiliDownloadService {
         videoOnlyOptions: const [],
         imageOptions: imageOptions,
         thumbnailHeaders: _downloadHeaders,
-        warning: '当前通过哔哩哔哩移动页直接解析，视频和封面直链都有时效，解析后建议尽快下载。',
+        warning: l10n.bilibiliWarning(l10n.platformName('bilibili')),
       );
     } on VideoDownloadException {
       rethrow;
     } on DioException catch (error) {
       throw VideoDownloadException(_mapDioError(error));
     } on TimeoutException {
-      throw const VideoDownloadException('连接哔哩哔哩超时，请稍后重试。');
+      throw VideoDownloadException(
+        l10n.timeoutMessage(
+          l10n.platformName('bilibili'),
+          l10n.bilibiliTimeoutDetail,
+        ),
+      );
     } on FormatException {
-      throw const VideoDownloadException('当前哔哩哔哩页面结构已变化，暂时无法解析。');
+      throw VideoDownloadException(l10n.bilibiliStructureChanged);
     } catch (error) {
-      throw VideoDownloadException('解析哔哩哔哩失败：$error');
+      throw VideoDownloadException(
+        l10n.parseFailed(l10n.platformName('bilibili'), error),
+      );
     }
   }
 
@@ -256,7 +277,7 @@ class BilibiliDownloadService {
         return Uri.parse('https://m.bilibili.com/video/$resolvedVideoId/');
       }
 
-      throw const VideoDownloadException('当前短链没有解析到可用的哔哩哔哩视频地址。');
+      throw VideoDownloadException(AppLocalizations.current.bilibiliShortLinkInvalid);
     }
 
     return uri.replace(
@@ -342,36 +363,42 @@ class BilibiliDownloadService {
 
   String _extensionLabel(String extension) => extension.toUpperCase();
 
-  String _compactCount(int value, String suffix) {
-    if (value >= 100000000) {
-      return '${(value / 100000000).toStringAsFixed(1)}亿$suffix';
-    }
-    if (value >= 10000) {
-      return '${(value / 10000).toStringAsFixed(1)}万$suffix';
-    }
-    return '$value $suffix';
-  }
-
   String _mapDioError(DioException error) {
+    final l10n = AppLocalizations.current;
     if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout ||
         error.type == DioExceptionType.sendTimeout) {
-      return '连接哔哩哔哩超时，请稍后重试。';
+      return l10n.timeoutMessage(
+        l10n.platformName('bilibili'),
+        l10n.bilibiliTimeoutDetail,
+      );
     }
 
     if (error.error is SocketException) {
-      return '当前设备无法连接到哔哩哔哩，请检查网络后重试。';
+      return l10n.networkUnavailable(
+        l10n.platformName('bilibili'),
+        l10n.bilibiliNetworkDetail,
+      );
     }
 
     if (error.error is HandshakeException) {
-      return '和哔哩哔哩建立安全连接失败，请检查当前网络环境。';
+      return l10n.handshakeFailed(
+        l10n.platformName('bilibili'),
+        l10n.bilibiliHandshakeDetail,
+      );
     }
 
     final statusCode = error.response?.statusCode;
     if (statusCode == 403 || statusCode == 429) {
-      return '哔哩哔哩当前暂时拒绝了这次请求，稍后重试更稳。';
+      return l10n.requestRejected(
+        l10n.platformName('bilibili'),
+        l10n.retryLaterDetail,
+      );
     }
 
-    return '哔哩哔哩请求失败：${error.message ?? error.type.name}';
+    return l10n.requestFailed(
+      l10n.platformName('bilibili'),
+      error.message ?? error.type.name,
+    );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
+import '../l10n/app_localizations.dart';
+
 enum VideoSource {
   youtube,
   douyin,
@@ -10,11 +12,13 @@ enum VideoSource {
 
 extension VideoSourceX on VideoSource {
   String get displayName => switch (this) {
-        VideoSource.youtube => 'YouTube',
-        VideoSource.douyin => '抖音',
-        VideoSource.bilibili => '哔哩哔哩',
-        VideoSource.iiilab => 'iiilab',
-        VideoSource.snapany => 'SnapAny',
+        VideoSource.youtube => AppLocalizations.current.platformName('youtube'),
+        VideoSource.douyin => AppLocalizations.current.platformName('douyin'),
+        VideoSource.bilibili =>
+          AppLocalizations.current.platformName('bilibili'),
+        VideoSource.iiilab => AppLocalizations.current.platformName('iiilab'),
+        VideoSource.snapany =>
+          AppLocalizations.current.platformName('snapany'),
       };
 
   String get fallbackFilePrefix => switch (this) {

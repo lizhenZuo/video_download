@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/download_models.dart';
 import 'download_support.dart';
 
@@ -103,14 +104,15 @@ class SnapAnyDownloadService {
   }
 
   Future<VideoExtractionResult> extract(String rawInput) async {
+    final l10n = AppLocalizations.current;
     final uri = Uri.tryParse(rawInput.trim());
     if (uri == null || uri.scheme.isEmpty || uri.host.isEmpty) {
-      throw const VideoDownloadException('请输入有效的视频链接。');
+      throw VideoDownloadException(l10n.invalidVideoUrl);
     }
 
     final platform = _detectPlatform(uri);
     if (platform == null) {
-      throw const VideoDownloadException('当前链接不在 SnapAny 已支持的平台列表内。');
+      throw VideoDownloadException(l10n.snapAnyUnsupportedLink);
     }
 
     try {
@@ -125,11 +127,18 @@ class SnapAnyDownloadService {
     } on DioException catch (error) {
       throw VideoDownloadException(_mapDioError(error));
     } on TimeoutException {
-      throw const VideoDownloadException('连接 SnapAny 解析服务超时，请稍后重试。');
+      throw VideoDownloadException(
+        l10n.timeoutMessage(
+          l10n.platformName('snapany'),
+          l10n.parserTimeoutDetail,
+        ),
+      );
     } on FormatException {
-      throw const VideoDownloadException('SnapAny 返回的数据格式异常，暂时无法处理。');
+      throw VideoDownloadException(l10n.snapAnyFormatChanged);
     } catch (error) {
-      throw VideoDownloadException('解析失败：$error');
+      throw VideoDownloadException(
+        l10n.parseFailed(l10n.platformName('snapany'), error),
+      );
     }
   }
 
@@ -158,7 +167,7 @@ class SnapAnyDownloadService {
 
     final payload = _asMap(response.data);
     if (payload == null) {
-      throw const VideoDownloadException('SnapAny 没有返回可用结果。');
+      throw VideoDownloadException(AppLocalizations.current.snapAnyNoResult);
     }
 
     if (response.statusCode == null ||
@@ -186,9 +195,10 @@ class SnapAnyDownloadService {
         .toList(growable: false);
 
     if (mediaMaps.isEmpty) {
-      throw const VideoDownloadException('当前内容没有可下载的媒体资源。');
+      throw VideoDownloadException(AppLocalizations.current.snapAnyNoMedia);
     }
 
+    final l10n = AppLocalizations.current;
     final muxedOptions = <DownloadAsset>[];
     final audioOptions = <DownloadAsset>[];
     final videoOnlyOptions = <DownloadAsset>[];
@@ -241,9 +251,9 @@ class SnapAnyDownloadService {
               DownloadAsset(
                 source: VideoSource.snapany,
                 id: '${platform.site}-video-${muxedOptions.length}',
-                title: '视频',
+                title: l10n.videoTitle,
                 subtitle:
-                    '${_extensionLabel(fileExtension)} · 直链下载$durationLabel',
+                    '${_extensionLabel(fileExtension)} · ${l10n.directLinkDownload}$durationLabel',
                 fileStem: 'video',
                 fileExtension: fileExtension,
                 kind: DownloadAssetKind.muxedVideo,
@@ -264,9 +274,9 @@ class SnapAnyDownloadService {
               DownloadAsset(
                 source: VideoSource.snapany,
                 id: '${platform.site}-audio-${audioOptions.length}',
-                title: '音频',
+                title: l10n.audioTitle,
                 subtitle:
-                    '${_extensionLabel(fileExtension)} · 直链下载$durationLabel',
+                    '${_extensionLabel(fileExtension)} · ${l10n.directLinkDownload}$durationLabel',
                 fileStem: 'audio',
                 fileExtension: fileExtension,
                 kind: DownloadAssetKind.audioOnly,
@@ -287,8 +297,9 @@ class SnapAnyDownloadService {
               DownloadAsset(
                 source: VideoSource.snapany,
                 id: '${platform.site}-image-$imageIndex',
-                title: imageIndex == 1 ? '图片' : '图片 $imageIndex',
-                subtitle: '${_extensionLabel(fileExtension)} · 原图直链',
+                title: l10n.imageTitle(imageIndex),
+                subtitle:
+                    '${_extensionLabel(fileExtension)} · ${l10n.originalImage}',
                 fileStem: 'image-$imageIndex',
                 fileExtension: fileExtension,
                 kind: DownloadAssetKind.image,
@@ -309,9 +320,9 @@ class SnapAnyDownloadService {
         DownloadAsset(
           source: VideoSource.snapany,
           id: '${platform.site}-preview',
-          title: '封面图',
+          title: l10n.coverTitle,
           subtitle:
-              '${_extensionLabel(_fileExtensionForUrl(previewThumbnail, fallback: 'jpg'))} · 预览图',
+              '${_extensionLabel(_fileExtensionForUrl(previewThumbnail, fallback: 'jpg'))} · ${l10n.previewImage}',
           fileStem: 'cover',
           fileExtension: _fileExtensionForUrl(previewThumbnail, fallback: 'jpg'),
           kind: DownloadAssetKind.thumbnail,
@@ -329,8 +340,8 @@ class SnapAnyDownloadService {
               orElse: () => DownloadAsset(
                 source: VideoSource.snapany,
                 id: '${platform.site}-fallback-thumbnail',
-                title: '封面图',
-                subtitle: 'JPG · 默认封面',
+                title: l10n.coverTitle,
+                subtitle: 'JPG · ${l10n.defaultCover}',
                 fileStem: 'cover',
                 fileExtension: 'jpg',
                 kind: DownloadAssetKind.thumbnail,
@@ -355,27 +366,28 @@ class SnapAnyDownloadService {
 
     final totalAssets =
         muxedOptions.length + audioOptions.length + imageOptions.length;
+    final platformLabel = l10n.platformName(platform.site);
     final warningParts = <String>[
-      '当前通过 SnapAny 在线解析接口返回直链，资源链接通常有时效，建议尽快下载。',
+      l10n.snapAnyWarning(platformLabel),
     ];
 
     if (_asInt(payload['overseas']) == 1) {
-      warningParts.add('该资源属于海外平台，下载仍然依赖当前网络环境。');
+      warningParts.add(l10n.overseasNetworkWarning(platformLabel));
     }
 
     return VideoExtractionResult(
       source: VideoSource.snapany,
-      platformLabel: platform.label,
+      platformLabel: platformLabel,
       sourceUrl: sourceUrl,
       videoId: '${payload['id'] ?? sourceUrl}',
       title: title,
-      author: platform.label,
+      author: platformLabel,
       thumbnailUrl: thumbnailUrl,
       duration: duration,
-      primaryMetricLabel: '$totalAssets 个下载项',
+      primaryMetricLabel: l10n.downloadItemsCount(totalAssets),
       description: trimDescription(
         '${payload['text'] ?? ''}'.trim().isEmpty
-            ? '${platform.label} 解析结果'
+            ? l10n.parseResultTitle(platformLabel)
             : '${payload['text']}'.trim(),
       ),
       quickActions: quickActions,
@@ -480,46 +492,65 @@ class SnapAnyDownloadService {
   }
 
   String _readServerMessage(Map<String, dynamic> payload) {
+    final l10n = AppLocalizations.current;
     final message = '${payload['message'] ?? ''}'.trim();
     if (message.isNotEmpty) {
       if (message.contains('操作太频繁')) {
-        return 'SnapAny 当前限制了请求频率，请稍后再试。';
+        return l10n.snapAnyRateLimited;
       }
       return message;
     }
-    return 'SnapAny 没有返回可用下载结果。';
+    return l10n.snapAnyNoResult;
   }
 
   String _mapDioError(DioException error) {
+    final l10n = AppLocalizations.current;
     if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout ||
         error.type == DioExceptionType.sendTimeout) {
-      return '连接 SnapAny 解析服务超时，请稍后重试。';
+      return l10n.timeoutMessage(
+        l10n.platformName('snapany'),
+        l10n.parserTimeoutDetail,
+      );
     }
 
     if (error.error is SocketException) {
-      return '当前设备无法连接到 SnapAny，请检查网络后重试。';
+      return l10n.networkUnavailable(
+        l10n.platformName('snapany'),
+        l10n.parserNetworkDetail,
+      );
     }
 
     if (error.error is HandshakeException) {
-      return '和 SnapAny 建立安全连接失败，请检查当前网络环境。';
+      return l10n.handshakeFailed(
+        l10n.platformName('snapany'),
+        l10n.parserHandshakeDetail,
+      );
     }
 
     final statusCode = error.response?.statusCode;
     if (statusCode == 401 || statusCode == 402 || statusCode == 429) {
-      return 'SnapAny 当前暂时拒绝了这次解析请求，稍后重试更稳。';
+      return l10n.requestRejected(
+        l10n.platformName('snapany'),
+        l10n.snapAnyRetryLaterDetail,
+      );
     }
 
-    return 'SnapAny 请求失败：${error.message ?? error.type.name}';
+    return l10n.requestFailed(
+      l10n.platformName('snapany'),
+      error.message ?? error.type.name,
+    );
   }
 
   String _resolveTitle(String rawText, _SnapAnyPlatform platform) {
+    final l10n = AppLocalizations.current;
+    final platformLabel = l10n.platformName(platform.site);
     final lines = rawText
         .split(RegExp(r'[\r\n]+'))
         .map((line) => line.replaceAll(RegExp(r'\s+'), ' ').trim())
         .where((line) => line.isNotEmpty);
     final firstLine = lines.isEmpty ? '' : lines.first;
-    final title = firstLine.isEmpty ? '${platform.label} 内容' : firstLine;
+    final title = firstLine.isEmpty ? l10n.contentTitle(platformLabel) : firstLine;
     return truncateUtf8(title, 96);
   }
 

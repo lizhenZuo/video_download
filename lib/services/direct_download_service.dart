@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/download_models.dart';
 import 'download_support.dart';
 
@@ -23,7 +24,7 @@ class DirectDownloadService {
   }) async {
     final url = asset.url;
     if (url == null) {
-      throw const VideoDownloadException('下载项缺少可用的文件地址。');
+      throw VideoDownloadException(AppLocalizations.current.noAvailableDownloadUrl);
     }
 
     final fileName = buildSafeFileName(videoTitle, asset);

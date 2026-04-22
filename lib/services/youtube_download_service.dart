@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/download_models.dart';
 import 'download_support.dart';
 
@@ -21,11 +22,14 @@ class YoutubeDownloadService {
   final Dio _dio;
 
   Future<VideoExtractionResult> extract(String rawInput) async {
+    final l10n = AppLocalizations.current;
     final input = rawInput.trim();
     final videoId = VideoId.parseVideoId(input);
 
     if (videoId == null) {
-      throw const VideoDownloadException('请输入有效的 YouTube 视频链接。');
+      throw VideoDownloadException(
+        l10n.invalidPlatformUrl(l10n.platformName('youtube')),
+      );
     }
 
     try {
@@ -34,7 +38,7 @@ class YoutubeDownloadService {
           );
 
       if (video.isLive) {
-        throw const VideoDownloadException('直播流暂不支持离线下载。');
+        throw VideoDownloadException(l10n.liveStreamNotSupported);
       }
 
       final manifest = await _getManifestWithFallback(videoId);
@@ -58,9 +62,9 @@ class YoutubeDownloadService {
             (stream) => DownloadAsset(
               source: VideoSource.youtube,
               id: 'muxed-${stream.tag}',
-              title: '视频 ${stream.qualityLabel}',
+              title: l10n.videoQualityTitle(stream.qualityLabel),
               subtitle:
-                  '${stream.container.name.toUpperCase()} · ${stream.size} · 带音轨',
+                  '${stream.container.name.toUpperCase()} · ${stream.size} · ${l10n.withAudioTrack}',
               fileStem: 'video-${_slug(stream.qualityLabel)}',
               fileExtension: stream.container.name,
               kind: DownloadAssetKind.muxedVideo,
@@ -76,7 +80,9 @@ class YoutubeDownloadService {
             (stream) => DownloadAsset(
               source: VideoSource.youtube,
               id: 'audio-${stream.tag}-${stream.audioTrack?.id ?? 'default'}',
-              title: '音频 ${_formatBitrate(stream.bitrate.bitsPerSecond)}',
+              title: l10n.audioBitrateTitle(
+                _formatBitrate(stream.bitrate.bitsPerSecond),
+              ),
               subtitle:
                   '${stream.container.name.toUpperCase()} · ${stream.size}${stream.audioTrack == null ? '' : ' · ${stream.audioTrack!.displayName}'}',
               fileStem:
@@ -95,9 +101,9 @@ class YoutubeDownloadService {
             (stream) => DownloadAsset(
               source: VideoSource.youtube,
               id: 'video-only-${stream.tag}',
-              title: '高分辨率 ${stream.qualityLabel}',
+              title: l10n.highResVideoTitle(stream.qualityLabel),
               subtitle:
-                  '${stream.container.name.toUpperCase()} · ${stream.size} · 仅视频',
+                  '${stream.container.name.toUpperCase()} · ${stream.size} · ${l10n.videoOnly}',
               fileStem: 'video-only-${_slug(stream.qualityLabel)}',
               fileExtension: stream.container.name,
               kind: DownloadAssetKind.videoOnly,
@@ -111,13 +117,15 @@ class YoutubeDownloadService {
       if (muxedOptions.isEmpty &&
           audioOptions.isEmpty &&
           videoOnlyOptions.isEmpty) {
-        throw const VideoDownloadException('当前视频没有可用下载流。');
+        throw VideoDownloadException(
+          l10n.noVideoStreamForPlatform(l10n.platformName('youtube')),
+        );
       }
 
       final thumbnailOption = DownloadAsset(
         source: VideoSource.youtube,
         id: 'thumbnail',
-        title: '封面图',
+        title: l10n.thumbnailTitle,
         subtitle: 'JPG · High Resolution',
         fileStem: 'cover',
         fileExtension: 'jpg',
@@ -134,14 +142,17 @@ class YoutubeDownloadService {
 
       return VideoExtractionResult(
         source: VideoSource.youtube,
-        platformLabel: 'YouTube',
+        platformLabel: l10n.platformName('youtube'),
         sourceUrl: video.url,
         videoId: video.id.value,
         title: video.title,
         author: video.author,
         thumbnailUrl: Uri.parse(video.thumbnails.highResUrl),
         duration: video.duration,
-        primaryMetricLabel: _compactCount(video.engagement.viewCount, '播放'),
+        primaryMetricLabel: l10n.metricLabel(
+          video.engagement.viewCount,
+          MetricKind.views,
+        ),
         description: trimDescription(video.description),
         quickActions: quickActions,
         muxedOptions: muxedOptions,
@@ -149,27 +160,38 @@ class YoutubeDownloadService {
         videoOnlyOptions: videoOnlyOptions,
         imageOptions: [thumbnailOption],
         warning: videoOnlyOptions.isNotEmpty
-            ? '1080p 以上通常是无音轨视频流，下载后若想直接播放，需要再与音频合并。'
+            ? l10n.highResWarning
             : null,
       );
     } on VideoDownloadException {
       rethrow;
     } on SocketException {
-      throw const VideoDownloadException(
-        '当前设备无法连接到 YouTube。请先确认网络环境可访问 YouTube，再重试。',
+      throw VideoDownloadException(
+        l10n.networkUnavailable(
+          l10n.platformName('youtube'),
+          l10n.youtubeNetworkDetail,
+        ),
       );
     } on HandshakeException {
-      throw const VideoDownloadException(
-        '和 YouTube 建立安全连接失败。请检查当前网络或代理配置。',
+      throw VideoDownloadException(
+        l10n.handshakeFailed(
+          l10n.platformName('youtube'),
+          l10n.youtubeHandshakeDetail,
+        ),
       );
     } on TimeoutException {
-      throw const VideoDownloadException(
-        '连接 YouTube 超时。通常是当前网络无法稳定访问 YouTube。',
+      throw VideoDownloadException(
+        l10n.timeoutMessage(
+          l10n.platformName('youtube'),
+          l10n.youtubeTimeoutDetail,
+        ),
       );
     } on VideoUnplayableException catch (error) {
       throw VideoDownloadException(_mapUnplayableMessage(error.message));
     } on Exception catch (error) {
-      throw VideoDownloadException('解析失败：$error');
+      throw VideoDownloadException(
+        l10n.parseFailed(l10n.platformName('youtube'), error),
+      );
     }
   }
 
@@ -236,7 +258,7 @@ class YoutubeDownloadService {
         },
       );
     } else {
-      throw const VideoDownloadException('下载项缺少可用的文件地址。');
+      throw VideoDownloadException(AppLocalizations.current.noAvailableDownloadUrl);
     }
 
     return DownloadReceipt(
@@ -296,8 +318,9 @@ class YoutubeDownloadService {
       .replaceAll(RegExp(r'^-|-$'), '');
 
   String _formatBitrate(int bitsPerSecond) {
+    final l10n = AppLocalizations.current;
     if (bitsPerSecond <= 0) {
-      return '未知码率';
+      return l10n.unknownBitrate;
     }
     final kbps = bitsPerSecond / 1024;
     return '${kbps.toStringAsFixed(kbps >= 100 ? 0 : 1)} kbps';
@@ -345,42 +368,37 @@ class YoutubeDownloadService {
       throw error;
     }
 
-    throw const VideoDownloadException('当前视频没有可用下载流。');
+    throw VideoDownloadException(
+      AppLocalizations.current.noVideoStreamForPlatform(
+        AppLocalizations.current.platformName('youtube'),
+      ),
+    );
   }
 
   String _mapUnplayableMessage(String rawMessage) {
+    final l10n = AppLocalizations.current;
     final message = rawMessage.toLowerCase();
 
     if (message.contains('age') || message.contains('confirm your age')) {
-      return '这个视频触发了年龄限制，当前解析方式拿不到可下载流。';
+      return l10n.ageRestricted;
     }
 
     if (message.contains('private')) {
-      return '这个视频是私有视频，无法解析下载。';
+      return l10n.privateVideo;
     }
 
     if (message.contains('members-only') || message.contains('member')) {
-      return '这个视频是会员专属内容，当前无法解析下载。';
+      return l10n.membersOnlyVideo;
     }
 
     if (message.contains('region') || message.contains('country')) {
-      return '这个视频受地区限制，当前网络区域拿不到可下载流。';
+      return l10n.regionRestricted;
     }
 
     if (message.contains('sign in')) {
-      return '这个视频需要登录态才能访问，当前解析方式拿不到可下载流。';
+      return l10n.signInRequired;
     }
 
-    return '当前视频不可播放，或者当前网络环境无法直接拿到 YouTube 媒体流。';
-  }
-
-  String _compactCount(int value, String suffix) {
-    if (value >= 100000000) {
-      return '${(value / 100000000).toStringAsFixed(1)}亿$suffix';
-    }
-    if (value >= 10000) {
-      return '${(value / 10000).toStringAsFixed(1)}万$suffix';
-    }
-    return '$value $suffix';
+    return l10n.unavailableMessage;
   }
 }

@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/download_models.dart';
 import 'download_support.dart';
 
@@ -26,11 +27,14 @@ class DouyinDownloadService {
   final Dio _dio;
 
   Future<VideoExtractionResult> extract(String rawInput) async {
+    final l10n = AppLocalizations.current;
     final input = rawInput.trim();
     final rawUri = Uri.tryParse(input);
 
     if (rawUri == null || rawUri.scheme.isEmpty || rawUri.host.isEmpty) {
-      throw const VideoDownloadException('请输入有效的抖音视频链接。');
+      throw VideoDownloadException(
+        l10n.invalidPlatformUrl(l10n.platformName('douyin')),
+      );
     }
 
     try {
@@ -50,7 +54,7 @@ class DouyinDownloadService {
 
       final html = response.data ?? '';
       if (html.isEmpty) {
-        throw const VideoDownloadException('抖音页面没有返回可解析内容。');
+        throw VideoDownloadException(l10n.douyinNoPageContent);
       }
 
       final routerData = _extractRouterData(html);
@@ -62,7 +66,7 @@ class DouyinDownloadService {
           : null;
 
       if (item == null) {
-        throw const VideoDownloadException('当前抖音视频没有可用的分享页数据。');
+        throw VideoDownloadException(l10n.douyinNoShareData);
       }
 
       final author = _asMap(item['author']);
@@ -74,13 +78,17 @@ class DouyinDownloadService {
       final coverUrls = _asStringList(cover?['url_list']);
 
       if (playUrls.isEmpty || coverUrls.isEmpty) {
-        throw const VideoDownloadException('当前抖音视频没有可用的下载地址。');
+        throw VideoDownloadException(l10n.douyinNoDownloadAddress);
       }
 
       final sourceUrl = response.realUri.toString();
       final videoId = '${item['aweme_id'] ?? ''}'.trim();
-      final title = '${item['desc'] ?? '抖音视频'}'.trim();
-      final authorName = '${author?['nickname'] ?? '抖音作者'}'.trim();
+      final title =
+          '${item['desc'] ?? l10n.contentTitle(l10n.platformName('douyin'))}'
+              .trim();
+      final authorName =
+          '${author?['nickname'] ?? l10n.defaultAuthor(l10n.platformName('douyin'))}'
+              .trim();
       final durationMs = _asInt(video?['duration']);
       final thumbnailUrl = Uri.parse(coverUrls.first);
       final watermarkUrl = Uri.parse(playUrls.first);
@@ -90,14 +98,14 @@ class DouyinDownloadService {
       final likeCount = _asInt(statistics?['digg_count']);
       final shareCount = _asInt(statistics?['share_count']);
       final primaryMetricLabel = likeCount > 0
-          ? _compactCount(likeCount, '点赞')
-          : _compactCount(shareCount, '分享');
+          ? l10n.metricLabel(likeCount, MetricKind.likes)
+          : l10n.metricLabel(shareCount, MetricKind.shares);
 
       final cleanVideo = DownloadAsset(
         source: VideoSource.douyin,
         id: 'douyin-clean-video',
-        title: '视频 720P',
-        subtitle: 'MP4 · 带音轨 · 无水印',
+        title: l10n.videoQualityTitle('720P'),
+        subtitle: 'MP4 · ${l10n.withAudioTrack} · ${l10n.noWatermark}',
         fileStem: 'video-720p-clean',
         fileExtension: 'mp4',
         kind: DownloadAssetKind.muxedVideo,
@@ -108,8 +116,8 @@ class DouyinDownloadService {
       final watermarkedVideo = DownloadAsset(
         source: VideoSource.douyin,
         id: 'douyin-watermark-video',
-        title: '视频 720P（水印）',
-        subtitle: 'MP4 · 带音轨 · 带水印',
+        title: l10n.watermarkedVideoTitle('720P'),
+        subtitle: 'MP4 · ${l10n.withAudioTrack} · ${l10n.withWatermark}',
         fileStem: 'video-720p-watermark',
         fileExtension: 'mp4',
         kind: DownloadAssetKind.muxedVideo,
@@ -120,8 +128,8 @@ class DouyinDownloadService {
       final thumbnailAsset = DownloadAsset(
         source: VideoSource.douyin,
         id: 'douyin-thumbnail',
-        title: '封面图',
-        subtitle: 'JPG/WEBP · 分享页封面',
+        title: l10n.coverTitle,
+        subtitle: 'JPG/WEBP · ${l10n.sharePageCover}',
         fileStem: 'cover',
         fileExtension: _coverExtension(thumbnailUrl),
         kind: DownloadAssetKind.thumbnail,
@@ -131,11 +139,14 @@ class DouyinDownloadService {
 
       return VideoExtractionResult(
         source: VideoSource.douyin,
-        platformLabel: '抖音',
+        platformLabel: l10n.platformName('douyin'),
         sourceUrl: sourceUrl,
         videoId: videoId.isEmpty ? sourceUrl : videoId,
-        title: title.isEmpty ? '抖音视频' : title,
-        author: authorName.isEmpty ? '抖音作者' : authorName,
+        title:
+            title.isEmpty ? l10n.contentTitle(l10n.platformName('douyin')) : title,
+        author: authorName.isEmpty
+            ? l10n.defaultAuthor(l10n.platformName('douyin'))
+            : authorName,
         thumbnailUrl: thumbnailUrl,
         duration: durationMs > 0 ? Duration(milliseconds: durationMs) : null,
         primaryMetricLabel: primaryMetricLabel,
@@ -145,20 +156,25 @@ class DouyinDownloadService {
         audioOptions: const [],
         videoOnlyOptions: const [],
         imageOptions: [thumbnailAsset],
-        warning: '当前通过抖音分享页解析，只提供直连 MP4 视频和封面图；独立音频与更多清晰度暂不提供。',
+        warning: l10n.douyinWarning(l10n.platformName('douyin')),
       );
     } on VideoDownloadException {
       rethrow;
     } on DioException catch (error) {
       throw VideoDownloadException(_mapDioError(error));
     } on TimeoutException {
-      throw const VideoDownloadException(
-        '连接抖音超时。通常是当前网络无法稳定访问抖音分享页。',
+      throw VideoDownloadException(
+        l10n.timeoutMessage(
+          l10n.platformName('douyin'),
+          l10n.douyinTimeoutDetail,
+        ),
       );
     } on FormatException {
-      throw const VideoDownloadException('当前抖音页面结构已变化，暂时无法解析。');
+      throw VideoDownloadException(l10n.douyinStructureChanged);
     } catch (error) {
-      throw VideoDownloadException('解析抖音失败：$error');
+      throw VideoDownloadException(
+        l10n.parseFailed(l10n.platformName('douyin'), error),
+      );
     }
   }
 
@@ -211,17 +227,21 @@ class DouyinDownloadService {
     ).firstMatch(html);
 
     if (match == null) {
-      throw const VideoDownloadException('当前抖音页面没有可解析的路由数据。');
+      throw VideoDownloadException(AppLocalizations.current.douyinNoRouterData);
     }
 
     return _asMap(jsonDecode(match.group(1)!)) ??
-        (throw const VideoDownloadException('抖音路由数据格式异常。'));
+        (throw VideoDownloadException(
+          AppLocalizations.current.douyinRouteDataInvalid,
+        ));
   }
 
   Map<String, dynamic> _findVideoPageData(Map<String, dynamic> routerData) {
     final loaderData = _asMap(routerData['loaderData']);
     if (loaderData == null) {
-      throw const VideoDownloadException('抖音页面缺少 loaderData。');
+      throw VideoDownloadException(
+        AppLocalizations.current.douyinLoaderDataMissing,
+      );
     }
 
     for (final entry in loaderData.entries) {
@@ -231,7 +251,7 @@ class DouyinDownloadService {
       }
     }
 
-    throw const VideoDownloadException('当前抖音页面没有视频信息。');
+    throw VideoDownloadException(AppLocalizations.current.douyinNoVideoInfo);
   }
 
   Map<String, dynamic>? _asMap(Object? value) {
@@ -267,16 +287,6 @@ class DouyinDownloadService {
     return int.tryParse('$value') ?? 0;
   }
 
-  String _compactCount(int value, String suffix) {
-    if (value >= 100000000) {
-      return '${(value / 100000000).toStringAsFixed(1)}亿$suffix';
-    }
-    if (value >= 10000) {
-      return '${(value / 10000).toStringAsFixed(1)}万$suffix';
-    }
-    return '$value $suffix';
-  }
-
   String _coverExtension(Uri url) {
     final path = url.path.toLowerCase();
     if (path.endsWith('.png')) {
@@ -292,26 +302,42 @@ class DouyinDownloadService {
   }
 
   String _mapDioError(DioException error) {
+    final l10n = AppLocalizations.current;
     if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout ||
         error.type == DioExceptionType.sendTimeout) {
-      return '连接抖音超时。通常是当前网络无法稳定访问抖音分享页。';
+      return l10n.timeoutMessage(
+        l10n.platformName('douyin'),
+        l10n.douyinTimeoutDetail,
+      );
     }
 
     if (error.error is SocketException) {
-      return '当前设备无法连接到抖音。请先确认网络环境可访问抖音，再重试。';
+      return l10n.networkUnavailable(
+        l10n.platformName('douyin'),
+        l10n.douyinNetworkDetail,
+      );
     }
 
     if (error.error is HandshakeException) {
-      return '和抖音建立安全连接失败。请检查当前网络或代理配置。';
+      return l10n.handshakeFailed(
+        l10n.platformName('douyin'),
+        l10n.douyinHandshakeDetail,
+      );
     }
 
     final statusCode = error.response?.statusCode;
     if (statusCode == 403 || statusCode == 429) {
-      return '抖音暂时拒绝了这次解析请求，稍后重试更稳。';
+      return l10n.requestRejected(
+        l10n.platformName('douyin'),
+        l10n.retryLaterDetail,
+      );
     }
 
-    return '抖音页面请求失败：${error.message ?? error.type.name}';
+    return l10n.requestFailed(
+      l10n.platformName('douyin'),
+      error.message ?? error.type.name,
+    );
   }
 
   String? _extractVideoIdFromUri(Uri uri) {

@@ -1,4 +1,5 @@
 import '../models/download_models.dart';
+import '../l10n/app_localizations.dart';
 import 'bilibili_download_service.dart';
 import 'direct_download_service.dart';
 import 'douyin_download_service.dart';
@@ -24,10 +25,11 @@ class VideoDownloadService {
   final DirectDownloadService _direct;
 
   Future<VideoExtractionResult> extract(String rawInput) async {
+    final l10n = AppLocalizations.current;
     final normalizedInput = _extractFirstUrl(rawInput);
 
     if (normalizedInput == null) {
-      throw const VideoDownloadException('请输入有效的视频链接。');
+      throw VideoDownloadException(l10n.invalidVideoUrl);
     }
 
     return switch (_detectSource(normalizedInput)) {
@@ -111,7 +113,7 @@ class VideoDownloadService {
     }
 
     throw VideoDownloadException(
-      '当前只支持 YouTube、抖音、哔哩哔哩，以及 iiilab / SnapAny 当前公开支持的 TikTok、Twitter、Instagram、Facebook、Vimeo、Threads 等平台链接。',
+      AppLocalizations.current.unsupportedPlatformsMessage,
     );
   }
 }

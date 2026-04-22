@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/download_models.dart';
 import 'download_support.dart';
 
@@ -139,14 +140,15 @@ class IiilabDownloadService {
   }
 
   Future<VideoExtractionResult> extract(String rawInput) async {
+    final l10n = AppLocalizations.current;
     final uri = Uri.tryParse(rawInput.trim());
     if (uri == null || uri.scheme.isEmpty || uri.host.isEmpty) {
-      throw const VideoDownloadException('请输入有效的视频链接。');
+      throw VideoDownloadException(l10n.invalidVideoUrl);
     }
 
     final platform = _detectPlatform(uri);
     if (platform == null) {
-      throw const VideoDownloadException('当前链接不在 iiilab 已支持的平台列表内。');
+      throw VideoDownloadException(l10n.iiilabUnsupportedLink);
     }
 
     try {
@@ -161,11 +163,15 @@ class IiilabDownloadService {
     } on DioException catch (error) {
       throw VideoDownloadException(_mapDioError(error));
     } on TimeoutException {
-      throw const VideoDownloadException('连接解析服务超时，请稍后重试。');
+      throw VideoDownloadException(
+        l10n.timeoutMessage(l10n.platformName('iiilab'), l10n.parserTimeoutDetail),
+      );
     } on FormatException {
-      throw const VideoDownloadException('解析服务返回的数据格式异常，暂时无法处理。');
+      throw VideoDownloadException(l10n.parseServiceFormatChanged);
     } catch (error) {
-      throw VideoDownloadException('解析失败：$error');
+      throw VideoDownloadException(
+        l10n.parseFailed(l10n.platformName('iiilab'), error),
+      );
     }
   }
 
@@ -199,7 +205,7 @@ class IiilabDownloadService {
 
     final payload = _asMap(response.data);
     if (payload == null) {
-      throw const VideoDownloadException('解析服务没有返回可用结果。');
+      throw VideoDownloadException(AppLocalizations.current.parseServiceNoResult);
     }
 
     if (response.statusCode == null ||
@@ -223,9 +229,10 @@ class IiilabDownloadService {
   }) {
     final mediaMaps = _expandMediaList(_asList(payload['medias']));
     if (mediaMaps.isEmpty) {
-      throw const VideoDownloadException('当前内容没有可下载的媒体资源。');
+      throw VideoDownloadException(AppLocalizations.current.parseServiceNoMedia);
     }
 
+    final l10n = AppLocalizations.current;
     final muxedOptions = <DownloadAsset>[];
     final audioOptions = <DownloadAsset>[];
     final videoOnlyOptions = <DownloadAsset>[];
@@ -249,9 +256,9 @@ class IiilabDownloadService {
           DownloadAsset(
             source: VideoSource.iiilab,
             id: '${platform.site}-preview-${imageOptions.length}',
-            title: '封面图',
+            title: l10n.coverTitle,
             subtitle:
-                '${_extensionLabel(_fileExtensionForUrl(previewUrl, fallback: 'jpg'))} · 预览图',
+                '${_extensionLabel(_fileExtensionForUrl(previewUrl, fallback: 'jpg'))} · ${l10n.previewImage}',
             fileStem: 'cover',
             fileExtension: _fileExtensionForUrl(previewUrl, fallback: 'jpg'),
             kind: DownloadAssetKind.thumbnail,
@@ -285,9 +292,9 @@ class IiilabDownloadService {
                 source: VideoSource.iiilab,
                 id:
                     '${platform.site}-${separate ? 'video-only' : 'video'}-${qualityNote.toLowerCase()}-${formats.length}-${addedVideoUrls.length}',
-                title: '视频 $qualityNote',
+                title: l10n.videoQualityTitle(qualityNote),
                 subtitle:
-                    '${_extensionLabel(fileExtension)} · ${separate ? '无音轨直链' : '带音轨直链'}',
+                    '${_extensionLabel(fileExtension)} · ${separate ? '${l10n.videoOnly} ${l10n.directLink}' : '${l10n.withAudioTrack} ${l10n.directLink}'}',
                 fileStem:
                     'video-${_slugifyQuality(qualityNote)}${separate ? '-silent' : ''}',
                 fileExtension: fileExtension,
@@ -314,8 +321,9 @@ class IiilabDownloadService {
                   DownloadAsset(
                     source: VideoSource.iiilab,
                     id: '${platform.site}-audio-${audioOptions.length}',
-                    title: '音频',
-                    subtitle: '${_extensionLabel(audioExt)} · 分离音轨',
+                    title: l10n.audioTitle,
+                    subtitle:
+                        '${_extensionLabel(audioExt)} · ${l10n.separatedAudioTrack}',
                     fileStem: 'audio',
                     fileExtension: audioExt,
                     kind: DownloadAssetKind.audioOnly,
@@ -334,8 +342,9 @@ class IiilabDownloadService {
               DownloadAsset(
                 source: VideoSource.iiilab,
                 id: '${platform.site}-video-default',
-                title: '视频直链',
-                subtitle: '${_extensionLabel(fileExtension)} · 默认下载项',
+                title: l10n.directVideoTitle,
+                subtitle:
+                    '${_extensionLabel(fileExtension)} · ${l10n.defaultDownloadItem}',
                 fileStem: 'video',
                 fileExtension: fileExtension,
                 kind: DownloadAssetKind.muxedVideo,
@@ -354,8 +363,9 @@ class IiilabDownloadService {
               DownloadAsset(
                 source: VideoSource.iiilab,
                 id: '${platform.site}-audio-${audioOptions.length}',
-                title: '音频',
-                subtitle: '${_extensionLabel(fileExtension)} · 直链',
+                title: l10n.audioTitle,
+                subtitle:
+                    '${_extensionLabel(fileExtension)} · ${l10n.directLink}',
                 fileStem: 'audio',
                 fileExtension: fileExtension,
                 kind: DownloadAssetKind.audioOnly,
@@ -380,8 +390,9 @@ class IiilabDownloadService {
               DownloadAsset(
                 source: VideoSource.iiilab,
                 id: '${platform.site}-image-$imageIndex',
-                title: '图片 $imageIndex',
-                subtitle: '${_extensionLabel(fileExtension)} · 原图直链',
+                title: l10n.imageTitle(imageIndex),
+                subtitle:
+                    '${_extensionLabel(fileExtension)} · ${l10n.originalImage}',
                 fileStem: 'image-$imageIndex',
                 fileExtension: fileExtension,
                 kind: DownloadAssetKind.image,
@@ -396,6 +407,7 @@ class IiilabDownloadService {
     }
 
     final rawText = '${payload['text'] ?? ''}'.trim();
+    final platformLabel = l10n.platformName(platform.site);
     final title = _resolveTitle(rawText, platform);
     final thumbnailUrl = imageOptions
             .map((asset) => asset.url)
@@ -416,29 +428,29 @@ class IiilabDownloadService {
         imageOptions.length;
 
     final warningParts = <String>[
-      '当前通过 iiilab 通用解析接口返回直链，资源链接通常有时效，建议尽快下载。',
+      l10n.iiilabWarning(l10n.platformName('iiilab')),
     ];
 
     if (_asInt(payload['overseas']) == 1) {
-      warningParts.add('下载海外平台资源仍然依赖当前网络环境。');
+      warningParts.add(l10n.overseasNetworkWarning(platformLabel));
     }
 
     if (videoOnlyOptions.any((asset) => asset.requiresMuxing)) {
-      warningParts.add('部分高分辨率视频不带音轨，如需直接播放，需要再和音频合并。');
+      warningParts.add(l10n.muxingWarning);
     }
 
     return VideoExtractionResult(
       source: VideoSource.iiilab,
-      platformLabel: platform.label,
+      platformLabel: platformLabel,
       sourceUrl: sourceUrl,
       videoId: sourceUrl,
       title: title,
-      author: platform.label,
+      author: platformLabel,
       thumbnailUrl: thumbnailUrl,
       duration: null,
-      primaryMetricLabel: '$totalAssets 个下载项',
+      primaryMetricLabel: l10n.downloadItemsCount(totalAssets),
       description: trimDescription(
-        rawText.isEmpty ? '${platform.label} 解析结果' : rawText,
+        rawText.isEmpty ? l10n.parseResultTitle(platformLabel) : rawText,
       ),
       quickActions: quickActions,
       muxedOptions: muxedOptions,
@@ -585,6 +597,7 @@ class IiilabDownloadService {
   }
 
   String _readServerMessage(Map<String, dynamic> payload) {
+    final l10n = AppLocalizations.current;
     final message = '${payload['message'] ?? ''}'.trim();
     if (message.isNotEmpty) {
       return message;
@@ -592,42 +605,60 @@ class IiilabDownloadService {
 
     final code = '${payload['code'] ?? ''}'.trim();
     if (code == 'ShowSponsorAds') {
-      return '解析服务当前触发了额外限制，请稍后重试。';
+      return l10n.parseServiceExtraLimit;
     }
 
-    return '解析服务没有返回可用下载结果。';
+    return l10n.parseServiceNoResult;
   }
 
   String _mapDioError(DioException error) {
+    final l10n = AppLocalizations.current;
     if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout ||
         error.type == DioExceptionType.sendTimeout) {
-      return '连接解析服务超时，请稍后重试。';
+      return l10n.timeoutMessage(
+        l10n.platformName('iiilab'),
+        l10n.parserTimeoutDetail,
+      );
     }
 
     if (error.error is SocketException) {
-      return '当前设备无法连接到解析服务，请检查网络后重试。';
+      return l10n.networkUnavailable(
+        l10n.platformName('iiilab'),
+        l10n.parserNetworkDetail,
+      );
     }
 
     if (error.error is HandshakeException) {
-      return '和解析服务建立安全连接失败，请检查当前网络环境。';
+      return l10n.handshakeFailed(
+        l10n.platformName('iiilab'),
+        l10n.parserHandshakeDetail,
+      );
     }
 
     final statusCode = error.response?.statusCode;
     if (statusCode == 403 || statusCode == 429) {
-      return '解析服务暂时拒绝了这次请求，稍后重试更稳。';
+      return l10n.requestRejected(
+        l10n.platformName('iiilab'),
+        l10n.retryLaterDetail,
+      );
     }
 
-    return '解析服务请求失败：${error.message ?? error.type.name}';
+    return l10n.requestFailed(
+      l10n.platformName('iiilab'),
+      error.message ?? error.type.name,
+    );
   }
 
   String _resolveTitle(String rawText, _IiilabPlatform platform) {
+    final l10n = AppLocalizations.current;
+    final platformLabel = l10n.platformName(platform.site);
     final lines = rawText
         .split(RegExp(r'[\r\n]+'))
         .map((line) => line.replaceAll(RegExp(r'\s+'), ' ').trim())
         .where((line) => line.isNotEmpty);
     final firstLine = lines.isEmpty ? '' : lines.first;
-    final title = firstLine.isEmpty ? '${platform.label} 内容' : firstLine;
+    final title = firstLine.isEmpty ? l10n.contentTitle(platformLabel) : firstLine;
     return truncateUtf8(title, 96);
   }
 
@@ -642,7 +673,7 @@ class IiilabDownloadService {
       return '${quality}p';
     }
 
-    return '原始清晰度';
+    return AppLocalizations.current.originalQuality;
   }
 
   String _slugifyQuality(String input) {

@@ -8,6 +8,8 @@ import 'package:gal/gal.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'l10n/app_locale_store.dart';
+import 'l10n/app_localizations.dart';
 import 'models/download_models.dart';
 import 'services/download_support.dart';
 import 'services/video_download_service.dart';
@@ -62,10 +64,11 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _extractVideo() async {
     FocusScope.of(context).unfocus();
+    final l10n = AppLocalizations.of(context);
 
     if (_urlController.text.trim().isEmpty) {
       setState(() {
-        _errorMessage = '先粘贴一个视频链接。';
+        _errorMessage = l10n.pasteVideoLinkFirst;
       });
       return;
     }
@@ -108,6 +111,7 @@ class _HomePageState extends State<HomePage> {
     if (result == null || _isDownloading) {
       return;
     }
+    final l10n = AppLocalizations.of(context);
 
     setState(() {
       _isDownloading = true;
@@ -144,10 +148,10 @@ class _HomePageState extends State<HomePage> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text('已保存到 ${receipt.fileName}'),
+            content: Text(l10n.savedToFile(receipt.fileName)),
             action: _supportsDirectOpen
                 ? SnackBarAction(
-                    label: '打开',
+                    label: l10n.open,
                     onPressed: _openLastDownload,
                   )
                 : null,
@@ -159,7 +163,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       setState(() {
-        _errorMessage = '下载失败：$error';
+        _errorMessage = l10n.downloadFailed(error);
       });
     } finally {
       if (mounted) {
@@ -185,7 +189,7 @@ class _HomePageState extends State<HomePage> {
 
     if (result.type != ResultType.done) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('无法直接打开文件：${result.message}')),
+        SnackBar(content: Text(context.l10n.cannotOpenFile(result.message))),
       );
     }
   }
@@ -195,6 +199,7 @@ class _HomePageState extends State<HomePage> {
     if (receipt == null || !receipt.canSaveToGallery || _isSavingToGallery) {
       return;
     }
+    final l10n = AppLocalizations.of(context);
 
     setState(() {
       _isSavingToGallery = true;
@@ -218,7 +223,7 @@ class _HomePageState extends State<HomePage> {
         ..showSnackBar(
           SnackBar(
             content: Text(
-              Platform.isIOS ? '已保存到系统相册，请到“照片”App 查看' : '已保存到系统相册',
+              Platform.isIOS ? l10n.savedToPhotosIos : l10n.savedToPhotos,
             ),
           ),
         );
@@ -228,7 +233,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       setState(() {
-        _errorMessage = '保存到相册失败：${_mapGalleryError(error)}';
+        _errorMessage = l10n.saveToGalleryFailed(_mapGalleryError(error));
       });
     } catch (error) {
       if (!mounted) {
@@ -236,7 +241,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       setState(() {
-        _errorMessage = '保存到相册失败：$error';
+        _errorMessage = l10n.saveToGalleryFailed(error);
       });
     } finally {
       if (mounted) {
@@ -260,11 +265,12 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final box = anchorContext.findRenderObject() as RenderBox?;
+      final l10n = AppLocalizations.of(context);
       await SharePlus.instance.share(
         ShareParams(
           title: receipt.fileName,
           subject: receipt.fileName,
-          text: '分享文件：${receipt.fileName}',
+          text: l10n.shareFile(receipt.fileName),
           files: [XFile(receipt.filePath)],
           sharePositionOrigin:
               box == null ? null : box.localToGlobal(Offset.zero) & box.size,
@@ -276,7 +282,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       setState(() {
-        _errorMessage = '分享失败：$error';
+        _errorMessage = context.l10n.shareFailed(error);
       });
     } finally {
       if (mounted) {
@@ -288,32 +294,36 @@ class _HomePageState extends State<HomePage> {
   }
 
   String _mapGalleryError(GalException error) {
+    final l10n = AppLocalizations.of(context);
     return switch (error.type) {
-      GalExceptionType.accessDenied => '没有相册权限，请在系统设置里允许访问照片。',
-      GalExceptionType.notEnoughSpace => '设备剩余空间不足。',
-      GalExceptionType.notSupportedFormat => '当前文件格式不支持保存到系统相册。',
-      GalExceptionType.unexpected => '系统相册返回了未知错误。',
+      GalExceptionType.accessDenied => l10n.galleryPermissionDenied,
+      GalExceptionType.notEnoughSpace => l10n.galleryNotEnoughSpace,
+      GalExceptionType.notSupportedFormat => l10n.galleryUnsupportedFormat,
+      GalExceptionType.unexpected => l10n.galleryUnknownError,
     };
   }
 
   Future<void> _openSettings() async {
-    final cacheCleared = await Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(
+    final result = await Navigator.of(context).push<_SettingsPageResult>(
+      MaterialPageRoute<_SettingsPageResult>(
         builder: (context) => const _SettingsPage(),
       ),
     );
 
-    if (!mounted || cacheCleared != true) {
+    if (!mounted || result == null) {
       return;
     }
 
-    setState(() {
-      _lastDownload = null;
-    });
+    if (result.cacheCleared) {
+      setState(() {
+        _lastDownload = null;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -350,8 +360,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     icon: const Icon(Icons.settings_rounded, size: 18),
-                    label: const Text(
-                      '设置中心',
+                    label: Text(
+                      l10n.settingsCenter,
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -368,8 +378,8 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '解析视频',
+                        Text(
+                          l10n.parseVideo,
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
@@ -377,8 +387,8 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          '统一处理 YouTube、抖音，以及 iiilab / SnapAny 当前公开支持的 TikTok、Bilibili、Twitter、Instagram、Facebook、Vimeo、Threads 等平台链接。',
+                        Text(
+                          l10n.parseVideoIntro,
                           style: TextStyle(
                             color: Color(0xFF4D6172),
                             height: 1.45,
@@ -391,10 +401,9 @@ class _HomePageState extends State<HomePage> {
                           maxLines: 3,
                           keyboardType: TextInputType.url,
                           decoration: InputDecoration(
-                            hintText:
-                                '粘贴视频链接，例如 YouTube、抖音、TikTok、Bilibili、微博、Twitter、Instagram、Facebook、Vimeo...',
+                            hintText: l10n.videoLinkHint,
                             suffixIcon: IconButton(
-                              tooltip: '粘贴剪贴板',
+                              tooltip: l10n.pasteClipboard,
                               onPressed: _pasteUrl,
                               icon: const Icon(Icons.content_paste_rounded),
                             ),
@@ -425,7 +434,9 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       )
                                     : const Icon(Icons.arrow_downward_rounded),
-                                label: Text(_isExtracting ? '解析中...' : '解析视频'),
+                                label: Text(
+                                  _isExtracting ? l10n.parsing : l10n.parseVideo,
+                                ),
                               ),
                             ),
                           ],
@@ -433,7 +444,7 @@ class _HomePageState extends State<HomePage> {
                         if (_isDownloading) ...[
                           const SizedBox(height: 16),
                           _DownloadProgress(
-                            label: _downloadLabel ?? '正在下载',
+                            label: _downloadLabel ?? l10n.download,
                             progress: _downloadProgress,
                           ),
                         ],
@@ -503,7 +514,7 @@ class _HomePageState extends State<HomePage> {
                               if (_supportsDirectOpen)
                                 FilledButton.tonal(
                                   onPressed: _openLastDownload,
-                                  child: const Text('打开'),
+                                  child: Text(l10n.open),
                                 ),
                               if (_lastDownload!.canSaveToGallery)
                                 FilledButton.tonalIcon(
@@ -520,7 +531,9 @@ class _HomePageState extends State<HomePage> {
                                       : const Icon(
                                           Icons.photo_library_outlined),
                                   label: Text(
-                                    _isSavingToGallery ? '保存中...' : '保存到相册',
+                                    _isSavingToGallery
+                                        ? l10n.saving
+                                        : l10n.saveToGallery,
                                   ),
                                 ),
                               Builder(
@@ -538,7 +551,9 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                           )
                                         : const Icon(Icons.share_outlined),
-                                    label: Text(_isSharing ? '分享中...' : '分享'),
+                                    label: Text(
+                                      _isSharing ? l10n.sharing : l10n.share,
+                                    ),
                                   );
                                 },
                               ),
@@ -580,6 +595,7 @@ class _HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -601,8 +617,10 @@ class _HeroSection extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _heroChip('YouTube + 抖音 + 多平台'),
-              _heroChip(isExtracting || isDownloading ? '进行中' : '可直接运行'),
+              _heroChip(l10n.heroPlatforms),
+              _heroChip(isExtracting || isDownloading
+                  ? l10n.heroInProgress
+                  : l10n.heroReady),
             ],
           ),
           const SizedBox(height: 18),
@@ -616,8 +634,8 @@ class _HeroSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
-            '把链接粘进来，解析封面和可下载的视频、音频、图片或分享页直链，支持保存到本地、相册和系统分享。',
+          Text(
+            l10n.heroDescription,
             style: TextStyle(
               color: Color(0xFFD9E7F5),
               fontSize: 15,
@@ -664,6 +682,7 @@ class _ResultPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(22),
@@ -724,9 +743,9 @@ class _ResultPanel extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 18),
-            const _SectionTitle(
-              title: '快速下载',
-              subtitle: '最常用的下载项，会根据平台能力自动变化。',
+            _SectionTitle(
+              title: l10n.quickDownload,
+              subtitle: l10n.quickDownloadSubtitle,
             ),
             const SizedBox(height: 12),
             _AssetGrid(
@@ -737,9 +756,9 @@ class _ResultPanel extends StatelessWidget {
             ),
             if (result.muxedOptions.isNotEmpty) ...[
               const SizedBox(height: 22),
-              const _SectionTitle(
-                title: '可直接播放的视频流',
-                subtitle: '带音轨，下载后可直接打开。',
+              _SectionTitle(
+                title: l10n.playableVideos,
+                subtitle: l10n.playableVideosSubtitle,
               ),
               const SizedBox(height: 12),
               _AssetGrid(
@@ -751,9 +770,9 @@ class _ResultPanel extends StatelessWidget {
             ],
             if (result.audioOptions.isNotEmpty) ...[
               const SizedBox(height: 22),
-              const _SectionTitle(
-                title: '独立音频流',
-                subtitle: '适合只保留声音或后续单独合并。',
+              _SectionTitle(
+                title: l10n.audioStreams,
+                subtitle: l10n.audioStreamsSubtitle,
               ),
               const SizedBox(height: 12),
               _AssetGrid(
@@ -765,9 +784,9 @@ class _ResultPanel extends StatelessWidget {
             ],
             if (result.videoOnlyOptions.isNotEmpty) ...[
               const SizedBox(height: 22),
-              const _SectionTitle(
-                title: '高分辨率视频流',
-                subtitle: '常见为 1080p / 4K，但不带音轨。',
+              _SectionTitle(
+                title: l10n.highResVideos,
+                subtitle: l10n.highResVideosSubtitle,
               ),
               const SizedBox(height: 12),
               _AssetGrid(
@@ -779,9 +798,9 @@ class _ResultPanel extends StatelessWidget {
             ],
             if (result.imageOptions.isNotEmpty) ...[
               const SizedBox(height: 22),
-              const _SectionTitle(
-                title: '图片 / 封面下载',
-                subtitle: '图集原图、封面图会统一放在这里。',
+              _SectionTitle(
+                title: l10n.imageDownloads,
+                subtitle: l10n.imageDownloadsSubtitle,
               ),
               const SizedBox(height: 12),
               _AssetGrid(
@@ -819,6 +838,7 @@ class _SettingsPageState extends State<_SettingsPage> {
   bool _isLoadingCacheSize = true;
   bool _isClearingCache = false;
   bool _cacheCleared = false;
+  bool _localeChanged = false;
 
   @override
   void initState() {
@@ -847,21 +867,22 @@ class _SettingsPageState extends State<_SettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
+        final l10n = context.l10n;
         return AlertDialog(
-          title: const Text('清空缓存'),
+          title: Text(l10n.clearCache),
           content: Text(
             cacheBytes > 0
-                ? '当前缓存约 ${_formatStorageSize(cacheBytes)}。清空后，App 内已下载但未另存到系统相册的位置文件会被删除。'
-                : '当前没有可清理的缓存。仍然继续刷新缓存状态吗？',
+                ? l10n.cacheDialogContent(_formatStorageSize(cacheBytes))
+                : l10n.emptyCacheDialogContent,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('取消'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text(cacheBytes > 0 ? '清空' : '刷新'),
+              child: Text(cacheBytes > 0 ? l10n.clear : l10n.refresh),
             ),
           ],
         );
@@ -893,8 +914,8 @@ class _SettingsPageState extends State<_SettingsPage> {
           SnackBar(
             content: Text(
               clearedBytes > 0
-                  ? '已清空 ${_formatStorageSize(clearedBytes)} 缓存'
-                  : '当前没有可清理的缓存',
+                  ? context.l10n.cacheCleared(_formatStorageSize(clearedBytes))
+                  : context.l10n.noCache,
             ),
           ),
         );
@@ -906,7 +927,7 @@ class _SettingsPageState extends State<_SettingsPage> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text('清空缓存失败：$error')),
+          SnackBar(content: Text(context.l10n.clearCacheFailed(error))),
         );
     } finally {
       if (mounted) {
@@ -918,32 +939,112 @@ class _SettingsPageState extends State<_SettingsPage> {
     }
   }
 
+  Future<void> _openLanguageSettings() async {
+    if (!mounted) {
+      return;
+    }
+
+    final currentLocale = AppLocalizations.of(context).locale;
+    final languageChanged = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (context) => _LanguageSelectionPage(
+          initialLocale: currentLocale,
+        ),
+      ),
+    );
+
+    if (!mounted || languageChanged != true) {
+      return;
+    }
+
+    _localeChanged = true;
+    Navigator.of(context).pop(
+      _SettingsPageResult(
+        cacheCleared: _cacheCleared,
+        localeChanged: true,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final cacheLabel = _isLoadingCacheSize
-        ? '正在计算...'
+        ? l10n.calculating
         : _formatStorageSize(_cacheBytes ?? 0);
+    final currentLocale = AppLocalizations.of(context).locale;
+    final currentLanguageLabel = l10n.languageDisplayName(currentLocale);
 
-    return PopScope<bool>(
+    return PopScope<_SettingsPageResult>(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
           return;
         }
 
-        Navigator.of(context).pop(_cacheCleared);
+        Navigator.of(context).pop(
+          _SettingsPageResult(
+            cacheCleared: _cacheCleared,
+            localeChanged: _localeChanged,
+          ),
+        );
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('设置中心'),
+          title: Text(l10n.settingsCenter),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => Navigator.of(context).pop(_cacheCleared),
+            onPressed: () => Navigator.of(context).pop(
+              _SettingsPageResult(
+                cacheCleared: _cacheCleared,
+                localeChanged: _localeChanged,
+              ),
+            ),
           ),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            Card(
+              child: ListTile(
+                onTap: _openLanguageSettings,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                title: Text(
+                  l10n.language,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF10273F),
+                  ),
+                ),
+                subtitle: Text(
+                  l10n.languageSettingHint,
+                  style: const TextStyle(height: 1.45),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 120),
+                      child: Text(
+                        currentLanguageLabel,
+                        textAlign: TextAlign.right,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFE66A3B),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.chevron_right_rounded),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             Card(
               child: ListTile(
                 onTap: (_isLoadingCacheSize || _isClearingCache)
@@ -953,8 +1054,8 @@ class _SettingsPageState extends State<_SettingsPage> {
                   horizontal: 20,
                   vertical: 8,
                 ),
-                title: const Text(
-                  '缓存大小',
+                title: Text(
+                  l10n.cacheSize,
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF10273F),
@@ -962,8 +1063,8 @@ class _SettingsPageState extends State<_SettingsPage> {
                 ),
                 subtitle: Text(
                   _isClearingCache
-                      ? '正在清空 App 缓存...'
-                      : '点击后可清空 App 内下载目录中的缓存文件。',
+                      ? l10n.clearingCache
+                      : l10n.clearCacheHint,
                   style: const TextStyle(height: 1.45),
                 ),
                 trailing: _isLoadingCacheSize
@@ -982,11 +1083,152 @@ class _SettingsPageState extends State<_SettingsPage> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              '这里清理的是 App 管理目录里的下载文件，不会影响你已经保存到系统相册或通过系统分享出去的副本。',
+            Text(
+              l10n.cacheFootnote,
               style: TextStyle(
                 color: Color(0xFF54697A),
                 height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsPageResult {
+  const _SettingsPageResult({
+    required this.cacheCleared,
+    required this.localeChanged,
+  });
+
+  final bool cacheCleared;
+  final bool localeChanged;
+}
+
+class _LanguageSelectionPage extends StatefulWidget {
+  const _LanguageSelectionPage({
+    required this.initialLocale,
+  });
+
+  final Locale initialLocale;
+
+  @override
+  State<_LanguageSelectionPage> createState() => _LanguageSelectionPageState();
+}
+
+class _LanguageSelectionPageState extends State<_LanguageSelectionPage> {
+  late Locale _selectedLocale = AppLocalizations.resolve(widget.initialLocale);
+  bool _isSaving = false;
+
+  Future<void> _confirmSelection() async {
+    if (_isSaving) {
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    await AppLocaleController.instance.updateLocale(_selectedLocale);
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pop(true);
+  }
+
+  bool _sameLocale(Locale left, Locale right) {
+    return left.languageCode == right.languageCode &&
+        left.scriptCode == right.scriptCode;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final options = AppLocalizations.supportedLocales;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.selectLanguage),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                children: [
+                  Text(
+                    l10n.selectLanguageHint,
+                    style: const TextStyle(
+                      color: Color(0xFF54697A),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Card(
+                    child: Column(
+                      children: [
+                        for (var index = 0; index < options.length; index++) ...[
+                          RadioListTile<Locale>(
+                            value: options[index],
+                            groupValue: _selectedLocale,
+                            onChanged: (value) {
+                              if (value == null) {
+                                return;
+                              }
+                              setState(() {
+                                _selectedLocale = value;
+                              });
+                            },
+                            title: Text(l10n.languageDisplayName(options[index])),
+                            activeColor: const Color(0xFFE66A3B),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 2,
+                            ),
+                          ),
+                          if (index != options.length - 1)
+                            const Divider(height: 1, indent: 18, endIndent: 18),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _isSaving ||
+                          _sameLocale(
+                            AppLocalizations.resolve(widget.initialLocale),
+                            _selectedLocale,
+                          )
+                      ? null
+                      : _confirmSelection,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFE66A3B),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: _isSaving
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(l10n.confirm),
+                ),
               ),
             ),
           ],
@@ -1101,20 +1343,21 @@ class _RemotePreviewImageState extends State<_RemotePreviewImage> {
   }
 
   Widget _buildFailedPlaceholder() {
+    final l10n = context.l10n;
     return Container(
       color: const Color(0xFFE6EDF3),
       alignment: Alignment.center,
-      child: const Column(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             Icons.broken_image_outlined,
             color: Color(0xFF5D7284),
             size: 34,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
-            '封面加载失败',
+            l10n.coverLoadFailed,
             style: TextStyle(
               color: Color(0xFF5D7284),
               fontWeight: FontWeight.w700,
@@ -1204,6 +1447,7 @@ class _AssetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final accent = switch (asset.kind) {
       DownloadAssetKind.muxedVideo => const Color(0xFF0F6CBA),
       DownloadAssetKind.audioOnly => const Color(0xFFCB5D2C),
@@ -1260,8 +1504,8 @@ class _AssetCard extends StatelessWidget {
                       color: const Color(0xFFFFF2D8),
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: const Text(
-                      '无音轨',
+                    child: Text(
+                      l10n.noAudioTrack,
                       style: TextStyle(
                         color: Color(0xFF7A4D04),
                         fontSize: 12,
@@ -1296,8 +1540,8 @@ class _AssetCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       downloadProgress > 0
-                          ? '下载中 ${(downloadProgress * 100).toStringAsFixed(0)}%'
-                          : '正在连接下载流...',
+                          ? l10n.downloadingPercent(downloadProgress)
+                          : l10n.connectingDownloadStream,
                       style: TextStyle(
                         color: accent,
                         fontWeight: FontWeight.w700,
@@ -1325,7 +1569,7 @@ class _AssetCard extends StatelessWidget {
                   ),
                 ),
                 icon: const Icon(Icons.download_rounded),
-                label: const Text('下载'),
+                label: Text(l10n.download),
               ),
           ],
         ),
@@ -1415,6 +1659,7 @@ class _DownloadProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1442,8 +1687,8 @@ class _DownloadProgress extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             progress > 0
-                ? '${(progress * 100).toStringAsFixed(0)}%'
-                : '正在建立下载连接...',
+                ? l10n.downloadConnectionProgress(progress)
+                : l10n.connectingDownload,
             style: const TextStyle(color: Color(0xFF54697A)),
           ),
         ],
@@ -1500,6 +1745,7 @@ class _FooterNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -1507,25 +1753,25 @@ class _FooterNote extends StatelessWidget {
         color: Colors.white.withValues(alpha: 0.84),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '实现说明',
+            l10n.footerTitle,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: Color(0xFF10273F),
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            '这个版本复刻的是站点的核心能力，不是把网页嵌进去：输入链接、拿到视频元数据、展示下载项、保存到本地。',
+            l10n.footerDescription1,
             style: TextStyle(color: Color(0xFF54697A), height: 1.5),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            '当前已接入 YouTube、抖音，以及 iiilab / SnapAny 当前公开支持的 TikTok、Bilibili、微博、Twitter、Instagram、Facebook、Vimeo、Threads 等平台。不同平台的直链都有时效，解析后建议尽快下载。',
+            l10n.footerDescription2,
             style: TextStyle(color: Color(0xFF54697A), height: 1.5),
           ),
         ],

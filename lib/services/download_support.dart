@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/download_models.dart';
 
 typedef ProgressReporter = void Function(double progress);
@@ -24,7 +25,7 @@ Future<Directory> resolveOutputDirectory({required bool preferShared}) async {
   );
 
   if (directory == null) {
-    throw const FileSystemException('无法定位可用的下载目录。');
+    throw FileSystemException(AppLocalizations.current.outputDirectoryUnavailable);
   }
 
   return directory;
