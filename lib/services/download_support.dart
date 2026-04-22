@@ -18,6 +18,85 @@ class VideoDownloadException implements Exception {
 }
 
 Future<Directory> resolveOutputDirectory({required bool preferShared}) async {
+  final directory = await _resolveTubeFetchDirectory(
+    preferShared: preferShared,
+    createIfMissing: true,
+  );
+
+  if (directory == null) {
+    throw const FileSystemException('无法定位可用的下载目录。');
+  }
+
+  return directory;
+}
+
+Future<List<Directory>> resolveCacheDirectories() async {
+  final directories = <String, Directory>{};
+
+  for (final preferShared in [true, false]) {
+    final directory = await _resolveTubeFetchDirectory(
+      preferShared: preferShared,
+      createIfMissing: false,
+    );
+
+    if (directory != null) {
+      directories[directory.path] = directory;
+    }
+  }
+
+  return directories.values.toList(growable: false);
+}
+
+Future<int> measureAppCacheBytes() async {
+  final directories = await resolveCacheDirectories();
+  var total = 0;
+
+  for (final directory in directories) {
+    total += await measureDirectoryBytes(directory);
+  }
+
+  return total;
+}
+
+Future<int> clearAppCache() async {
+  final directories = await resolveCacheDirectories();
+  var clearedBytes = 0;
+
+  for (final directory in directories) {
+    clearedBytes += await measureDirectoryBytes(directory);
+    if (await directory.exists()) {
+      await directory.delete(recursive: true);
+    }
+  }
+
+  return clearedBytes;
+}
+
+Future<int> measureDirectoryBytes(Directory directory) async {
+  if (!await directory.exists()) {
+    return 0;
+  }
+
+  var total = 0;
+  await for (final entity in directory.list(recursive: true, followLinks: false)) {
+    if (entity is! File) {
+      continue;
+    }
+
+    try {
+      total += await entity.length();
+    } on FileSystemException {
+      continue;
+    }
+  }
+
+  return total;
+}
+
+Future<Directory?> _resolveTubeFetchDirectory({
+  required bool preferShared,
+  required bool createIfMissing,
+}) async {
   Directory? baseDirectory;
 
   if (preferShared) {
@@ -32,6 +111,10 @@ Future<Directory> resolveOutputDirectory({required bool preferShared}) async {
 
   final directory = Directory('${baseDirectory.path}/TubeFetch');
   if (!await directory.exists()) {
+    if (!createIfMissing) {
+      return null;
+    }
+
     await directory.create(recursive: true);
   }
 

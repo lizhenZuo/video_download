@@ -9,6 +9,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'models/download_models.dart';
+import 'services/download_support.dart';
 import 'services/video_download_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -38,8 +39,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-
-    _urlController.text = "https://www.bilibili.com/video/BV1x2doBCEyT/?spm_id_from=333.1007.tianma.4-2-12.click&vd_source=cf5cfc2f23f57fe28c14476456838ca4";
   }
 
   @override
@@ -297,6 +296,22 @@ class _HomePageState extends State<HomePage> {
     };
   }
 
+  Future<void> _openSettings() async {
+    final cacheCleared = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (context) => const _SettingsPage(),
+      ),
+    );
+
+    if (!mounted || cacheCleared != true) {
+      return;
+    }
+
+    setState(() {
+      _lastDownload = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -319,6 +334,29 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: _openSettings,
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.white.withValues(alpha: 0.12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    icon: const Icon(Icons.settings_rounded, size: 18),
+                    label: const Text(
+                      '设置中心',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 _HeroSection(
                   isExtracting: _isExtracting,
                   isDownloading: _isDownloading,
@@ -769,6 +807,195 @@ class _ResultPanel extends StatelessWidget {
   }
 }
 
+class _SettingsPage extends StatefulWidget {
+  const _SettingsPage();
+
+  @override
+  State<_SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<_SettingsPage> {
+  int? _cacheBytes;
+  bool _isLoadingCacheSize = true;
+  bool _isClearingCache = false;
+  bool _cacheCleared = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshCacheSize();
+  }
+
+  Future<void> _refreshCacheSize() async {
+    final cacheBytes = await measureAppCacheBytes();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _cacheBytes = cacheBytes;
+      _isLoadingCacheSize = false;
+    });
+  }
+
+  Future<void> _clearCache() async {
+    if (_isClearingCache) {
+      return;
+    }
+
+    final cacheBytes = _cacheBytes ?? 0;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('清空缓存'),
+          content: Text(
+            cacheBytes > 0
+                ? '当前缓存约 ${_formatStorageSize(cacheBytes)}。清空后，App 内已下载但未另存到系统相册的位置文件会被删除。'
+                : '当前没有可清理的缓存。仍然继续刷新缓存状态吗？',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(cacheBytes > 0 ? '清空' : '刷新'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isClearingCache = true;
+    });
+
+    try {
+      final clearedBytes = cacheBytes > 0 ? await clearAppCache() : 0;
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _cacheBytes = 0;
+        _cacheCleared = _cacheCleared || clearedBytes > 0;
+      });
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              clearedBytes > 0
+                  ? '已清空 ${_formatStorageSize(clearedBytes)} 缓存'
+                  : '当前没有可清理的缓存',
+            ),
+          ),
+        );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('清空缓存失败：$error')),
+        );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isClearingCache = false;
+          _isLoadingCacheSize = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cacheLabel = _isLoadingCacheSize
+        ? '正在计算...'
+        : _formatStorageSize(_cacheBytes ?? 0);
+
+    return PopScope<bool>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          return;
+        }
+
+        Navigator.of(context).pop(_cacheCleared);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('设置中心'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: () => Navigator.of(context).pop(_cacheCleared),
+          ),
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Card(
+              child: ListTile(
+                onTap: (_isLoadingCacheSize || _isClearingCache)
+                    ? null
+                    : _clearCache,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                title: const Text(
+                  '缓存大小',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF10273F),
+                  ),
+                ),
+                subtitle: Text(
+                  _isClearingCache
+                      ? '正在清空 App 缓存...'
+                      : '点击后可清空 App 内下载目录中的缓存文件。',
+                  style: const TextStyle(height: 1.45),
+                ),
+                trailing: _isLoadingCacheSize
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2.2),
+                      )
+                    : Text(
+                        cacheLabel,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFE66A3B),
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '这里清理的是 App 管理目录里的下载文件，不会影响你已经保存到系统相册或通过系统分享出去的副本。',
+              style: TextStyle(
+                color: Color(0xFF54697A),
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _RemotePreviewImage extends StatefulWidget {
   const _RemotePreviewImage({
     required this.url,
@@ -897,6 +1124,27 @@ class _RemotePreviewImageState extends State<_RemotePreviewImage> {
       ),
     );
   }
+}
+
+String _formatStorageSize(int bytes) {
+  if (bytes <= 0) {
+    return '0 B';
+  }
+
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  var value = bytes.toDouble();
+  var unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+
+  final formatted = value >= 100 || unitIndex == 0
+      ? value.toStringAsFixed(0)
+      : value.toStringAsFixed(1);
+
+  return '$formatted ${units[unitIndex]}';
 }
 
 class _AssetGrid extends StatelessWidget {
