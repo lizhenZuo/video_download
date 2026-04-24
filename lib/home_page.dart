@@ -13,6 +13,7 @@ import 'l10n/app_localizations.dart';
 import 'models/download_models.dart';
 import 'services/download_support.dart';
 import 'services/video_download_service.dart';
+import 'theme/app_theme_store.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -324,16 +325,17 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = _AppPalette.of(context);
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF0D355C),
-              Color(0xFF0D355C),
-              Color(0xFFF7F2E8),
+              palette.pageGradientTop,
+              palette.pageGradientTop,
+              palette.pageGradientBottom,
             ],
             stops: [0, 0.28, 0.28],
           ),
@@ -349,8 +351,8 @@ class _HomePageState extends State<HomePage> {
                   child: TextButton.icon(
                     onPressed: _openSettings,
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.white.withValues(alpha: 0.12),
+                      foregroundColor: palette.topButtonForeground,
+                      backgroundColor: palette.topButtonBackground,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 10,
@@ -383,14 +385,14 @@ class _HomePageState extends State<HomePage> {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF10273F),
+                            color: palette.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           l10n.parseVideoIntro,
                           style: TextStyle(
-                            color: Color(0xFF4D6172),
+                            color: palette.textSecondary,
                             height: 1.45,
                           ),
                         ),
@@ -435,7 +437,9 @@ class _HomePageState extends State<HomePage> {
                                       )
                                     : const Icon(Icons.arrow_downward_rounded),
                                 label: Text(
-                                  _isExtracting ? l10n.parsing : l10n.parseVideo,
+                                  _isExtracting
+                                      ? l10n.parsing
+                                      : l10n.parseVideo,
                                 ),
                               ),
                             ),
@@ -455,8 +459,8 @@ class _HomePageState extends State<HomePage> {
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 16),
                   _MessageCard(
-                    backgroundColor: const Color(0xFFFFE9E3),
-                    foregroundColor: const Color(0xFF8A2A17),
+                    backgroundColor: palette.errorBackground,
+                    foregroundColor: palette.errorForeground,
                     icon: Icons.error_outline_rounded,
                     message: _errorMessage!,
                   ),
@@ -472,10 +476,11 @@ class _HomePageState extends State<HomePage> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const CircleAvatar(
-                                backgroundColor: Color(0xFFE1F4EB),
-                                foregroundColor: Color(0xFF1C7D52),
-                                child: Icon(Icons.check_circle_outline_rounded),
+                              CircleAvatar(
+                                backgroundColor: palette.successBackground,
+                                foregroundColor: palette.successForeground,
+                                child: const Icon(
+                                    Icons.check_circle_outline_rounded),
                               ),
                               const SizedBox(width: 14),
                               Expanded(
@@ -486,9 +491,9 @@ class _HomePageState extends State<HomePage> {
                                       _lastDownload!.fileName,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.w800,
-                                        color: Color(0xFF10273F),
+                                        color: palette.textPrimary,
                                       ),
                                     ),
                                     const SizedBox(height: 6),
@@ -496,8 +501,8 @@ class _HomePageState extends State<HomePage> {
                                       _lastDownload!.filePath,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Color(0xFF54697A),
+                                      style: TextStyle(
+                                        color: palette.textSecondary,
                                         height: 1.4,
                                       ),
                                     ),
@@ -596,17 +601,18 @@ class _HeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = _AppPalette.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(32),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF113B69),
-            Color(0xFF1B5B8B),
+            palette.heroGradientStart,
+            palette.heroGradientEnd,
           ],
         ),
       ),
@@ -637,7 +643,7 @@ class _HeroSection extends StatelessWidget {
           Text(
             l10n.heroDescription,
             style: TextStyle(
-              color: Color(0xFFD9E7F5),
+              color: palette.heroBodyText,
               fontSize: 15,
               height: 1.5,
             ),
@@ -683,6 +689,7 @@ class _ResultPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = _AppPalette.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(22),
@@ -702,10 +709,10 @@ class _ResultPanel extends StatelessWidget {
             const SizedBox(height: 18),
             Text(
               result.title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF10273F),
+                color: palette.textPrimary,
               ),
             ),
             const SizedBox(height: 10),
@@ -736,8 +743,8 @@ class _ResultPanel extends StatelessWidget {
               const SizedBox(height: 14),
               Text(
                 result.description,
-                style: const TextStyle(
-                  color: Color(0xFF4D6172),
+                style: TextStyle(
+                  color: palette.textSecondary,
                   height: 1.45,
                 ),
               ),
@@ -813,8 +820,8 @@ class _ResultPanel extends StatelessWidget {
             if (result.warning != null) ...[
               const SizedBox(height: 18),
               _MessageCard(
-                backgroundColor: const Color(0xFFFFF2D8),
-                foregroundColor: const Color(0xFF7A4D04),
+                backgroundColor: palette.warningBackground,
+                foregroundColor: palette.warningForeground,
                 icon: Icons.info_outline_rounded,
                 message: result.warning!,
               ),
@@ -839,6 +846,7 @@ class _SettingsPageState extends State<_SettingsPage> {
   bool _isClearingCache = false;
   bool _cacheCleared = false;
   bool _localeChanged = false;
+  bool _themeChanged = false;
 
   @override
   void initState() {
@@ -962,6 +970,39 @@ class _SettingsPageState extends State<_SettingsPage> {
       _SettingsPageResult(
         cacheCleared: _cacheCleared,
         localeChanged: true,
+        themeChanged: _themeChanged,
+      ),
+    );
+  }
+
+  Future<void> _openThemeSettings() async {
+    if (!mounted) {
+      return;
+    }
+
+    final currentThemeMode = AppThemeController.instance.value;
+    final selectedMode = await showDialog<ThemeMode>(
+      context: context,
+      builder: (context) => _ThemeSelectionDialog(
+        initialMode: currentThemeMode,
+      ),
+    );
+
+    if (!mounted || selectedMode == null || selectedMode == currentThemeMode) {
+      return;
+    }
+
+    await AppThemeController.instance.updateThemeMode(selectedMode);
+    if (!mounted) {
+      return;
+    }
+
+    _themeChanged = true;
+    Navigator.of(context).pop(
+      _SettingsPageResult(
+        cacheCleared: _cacheCleared,
+        localeChanged: _localeChanged,
+        themeChanged: true,
       ),
     );
   }
@@ -969,11 +1010,14 @@ class _SettingsPageState extends State<_SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = _AppPalette.of(context);
     final cacheLabel = _isLoadingCacheSize
         ? l10n.calculating
         : _formatStorageSize(_cacheBytes ?? 0);
     final currentLocale = AppLocalizations.of(context).locale;
     final currentLanguageLabel = l10n.languageDisplayName(currentLocale);
+    final currentThemeMode = AppThemeController.instance.value;
+    final currentThemeModeLabel = l10n.themeModeDisplayName(currentThemeMode);
 
     return PopScope<_SettingsPageResult>(
       canPop: false,
@@ -986,6 +1030,7 @@ class _SettingsPageState extends State<_SettingsPage> {
           _SettingsPageResult(
             cacheCleared: _cacheCleared,
             localeChanged: _localeChanged,
+            themeChanged: _themeChanged,
           ),
         );
       },
@@ -998,6 +1043,7 @@ class _SettingsPageState extends State<_SettingsPage> {
               _SettingsPageResult(
                 cacheCleared: _cacheCleared,
                 localeChanged: _localeChanged,
+                themeChanged: _themeChanged,
               ),
             ),
           ),
@@ -1014,14 +1060,17 @@ class _SettingsPageState extends State<_SettingsPage> {
                 ),
                 title: Text(
                   l10n.language,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF10273F),
+                    color: palette.textPrimary,
                   ),
                 ),
                 subtitle: Text(
                   l10n.languageSettingHint,
-                  style: const TextStyle(height: 1.45),
+                  style: TextStyle(
+                    height: 1.45,
+                    color: palette.textSecondary,
+                  ),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1034,7 +1083,50 @@ class _SettingsPageState extends State<_SettingsPage> {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFFE66A3B),
+                          color: _accentColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.chevron_right_rounded),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                onTap: _openThemeSettings,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                title: Text(
+                  l10n.displayMode,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: palette.textPrimary,
+                  ),
+                ),
+                subtitle: Text(
+                  l10n.displayModeSettingHint,
+                  style: TextStyle(
+                    height: 1.45,
+                    color: palette.textSecondary,
+                  ),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 120),
+                      child: Text(
+                        currentThemeModeLabel,
+                        textAlign: TextAlign.right,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: _accentColor,
                         ),
                       ),
                     ),
@@ -1058,14 +1150,15 @@ class _SettingsPageState extends State<_SettingsPage> {
                   l10n.cacheSize,
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF10273F),
+                    color: palette.textPrimary,
                   ),
                 ),
                 subtitle: Text(
-                  _isClearingCache
-                      ? l10n.clearingCache
-                      : l10n.clearCacheHint,
-                  style: const TextStyle(height: 1.45),
+                  _isClearingCache ? l10n.clearingCache : l10n.clearCacheHint,
+                  style: TextStyle(
+                    height: 1.45,
+                    color: palette.textSecondary,
+                  ),
                 ),
                 trailing: _isLoadingCacheSize
                     ? const SizedBox(
@@ -1077,7 +1170,7 @@ class _SettingsPageState extends State<_SettingsPage> {
                         cacheLabel,
                         style: const TextStyle(
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFFE66A3B),
+                          color: _accentColor,
                         ),
                       ),
               ),
@@ -1086,7 +1179,7 @@ class _SettingsPageState extends State<_SettingsPage> {
             Text(
               l10n.cacheFootnote,
               style: TextStyle(
-                color: Color(0xFF54697A),
+                color: palette.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -1101,10 +1194,12 @@ class _SettingsPageResult {
   const _SettingsPageResult({
     required this.cacheCleared,
     required this.localeChanged,
+    required this.themeChanged,
   });
 
   final bool cacheCleared;
   final bool localeChanged;
+  final bool themeChanged;
 }
 
 class _LanguageSelectionPage extends StatefulWidget {
@@ -1148,6 +1243,7 @@ class _LanguageSelectionPageState extends State<_LanguageSelectionPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final options = AppLocalizations.supportedLocales;
+    final palette = _AppPalette.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -1162,8 +1258,8 @@ class _LanguageSelectionPageState extends State<_LanguageSelectionPage> {
                 children: [
                   Text(
                     l10n.selectLanguageHint,
-                    style: const TextStyle(
-                      color: Color(0xFF54697A),
+                    style: TextStyle(
+                      color: palette.textSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -1171,7 +1267,9 @@ class _LanguageSelectionPageState extends State<_LanguageSelectionPage> {
                   Card(
                     child: Column(
                       children: [
-                        for (var index = 0; index < options.length; index++) ...[
+                        for (var index = 0;
+                            index < options.length;
+                            index++) ...[
                           RadioListTile<Locale>(
                             value: options[index],
                             groupValue: _selectedLocale,
@@ -1183,8 +1281,9 @@ class _LanguageSelectionPageState extends State<_LanguageSelectionPage> {
                                 _selectedLocale = value;
                               });
                             },
-                            title: Text(l10n.languageDisplayName(options[index])),
-                            activeColor: const Color(0xFFE66A3B),
+                            title:
+                                Text(l10n.languageDisplayName(options[index])),
+                            activeColor: _accentColor,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 18,
                               vertical: 2,
@@ -1212,7 +1311,7 @@ class _LanguageSelectionPageState extends State<_LanguageSelectionPage> {
                       ? null
                       : _confirmSelection,
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFE66A3B),
+                    backgroundColor: _accentColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -1271,6 +1370,7 @@ class _RemotePreviewImageState extends State<_RemotePreviewImage> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _AppPalette.of(context);
     return FutureBuilder<Uint8List>(
       future: _imageBytesFuture,
       builder: (context, snapshot) {
@@ -1284,7 +1384,7 @@ class _RemotePreviewImageState extends State<_RemotePreviewImage> {
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
-            color: const Color(0xFFE6EDF3),
+            color: palette.previewBackground,
             alignment: Alignment.center,
             child: const SizedBox(
               width: 26,
@@ -1300,7 +1400,8 @@ class _RemotePreviewImageState extends State<_RemotePreviewImage> {
   }
 
   Future<Uint8List> _loadImageBytes() async {
-    final client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 15);
 
     try {
       final request = await client.getUrl(widget.url);
@@ -1344,22 +1445,23 @@ class _RemotePreviewImageState extends State<_RemotePreviewImage> {
 
   Widget _buildFailedPlaceholder() {
     final l10n = context.l10n;
+    final palette = _AppPalette.of(context);
     return Container(
-      color: const Color(0xFFE6EDF3),
+      color: palette.previewBackground,
       alignment: Alignment.center,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.broken_image_outlined,
-            color: Color(0xFF5D7284),
+            color: palette.textMuted,
             size: 34,
           ),
           const SizedBox(height: 10),
           Text(
             l10n.coverLoadFailed,
             style: TextStyle(
-              color: Color(0xFF5D7284),
+              color: palette.textMuted,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1448,12 +1550,19 @@ class _AssetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = _AppPalette.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = switch (asset.kind) {
-      DownloadAssetKind.muxedVideo => const Color(0xFF0F6CBA),
-      DownloadAssetKind.audioOnly => const Color(0xFFCB5D2C),
-      DownloadAssetKind.videoOnly => const Color(0xFF334B65),
-      DownloadAssetKind.image => const Color(0xFF2E8B57),
-      DownloadAssetKind.thumbnail => const Color(0xFF2E8B57),
+      DownloadAssetKind.muxedVideo =>
+        isDark ? const Color(0xFF66B8FF) : const Color(0xFF0F6CBA),
+      DownloadAssetKind.audioOnly =>
+        isDark ? const Color(0xFFFFA46B) : const Color(0xFFCB5D2C),
+      DownloadAssetKind.videoOnly =>
+        isDark ? const Color(0xFF9CB7D3) : const Color(0xFF334B65),
+      DownloadAssetKind.image =>
+        isDark ? const Color(0xFF6FD0A0) : const Color(0xFF2E8B57),
+      DownloadAssetKind.thumbnail =>
+        isDark ? const Color(0xFF6FD0A0) : const Color(0xFF2E8B57),
     };
 
     final icon = switch (asset.kind) {
@@ -1470,7 +1579,7 @@ class _AssetCard extends StatelessWidget {
       child: Ink(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: palette.assetCardBackground,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: accent.withValues(alpha: 0.18)),
         ),
@@ -1488,9 +1597,9 @@ class _AssetCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     asset.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF10273F),
+                      color: palette.textPrimary,
                     ),
                   ),
                 ),
@@ -1501,13 +1610,13 @@ class _AssetCard extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF2D8),
+                      color: palette.warningBackground,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
                       l10n.noAudioTrack,
                       style: TextStyle(
-                        color: Color(0xFF7A4D04),
+                        color: palette.warningForeground,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
@@ -1518,8 +1627,8 @@ class _AssetCard extends StatelessWidget {
             const SizedBox(height: 14),
             Text(
               asset.subtitle,
-              style: const TextStyle(
-                color: Color(0xFF54697A),
+              style: TextStyle(
+                color: palette.textSecondary,
                 height: 1.45,
               ),
             ),
@@ -1555,7 +1664,7 @@ class _AssetCard extends StatelessWidget {
                 value: downloadProgress > 0 ? downloadProgress : null,
                 minHeight: 7,
                 borderRadius: BorderRadius.circular(999),
-                backgroundColor: const Color(0xFFD8E3ED),
+                backgroundColor: palette.progressTrack,
                 valueColor: AlwaysStoppedAnimation<Color>(accent),
               ),
             ] else
@@ -1589,22 +1698,23 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _AppPalette.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF10273F),
+            color: palette.textPrimary,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           subtitle,
-          style: const TextStyle(
-            color: Color(0xFF54697A),
+          style: TextStyle(
+            color: palette.textSecondary,
             height: 1.4,
           ),
         ),
@@ -1624,21 +1734,22 @@ class _MetaPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _AppPalette.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F6FA),
+        color: palette.mutedSurface,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: const Color(0xFF34506A)),
+          Icon(icon, size: 16, color: palette.softForeground),
           const SizedBox(width: 8),
           Text(
             label,
-            style: const TextStyle(
-              color: Color(0xFF34506A),
+            style: TextStyle(
+              color: palette.softForeground,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1660,10 +1771,11 @@ class _DownloadProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = _AppPalette.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F7FB),
+        color: palette.softSurface,
         borderRadius: BorderRadius.circular(22),
       ),
       child: Column(
@@ -1671,9 +1783,9 @@ class _DownloadProgress extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w700,
-              color: Color(0xFF10273F),
+              color: palette.textPrimary,
             ),
           ),
           const SizedBox(height: 10),
@@ -1681,15 +1793,15 @@ class _DownloadProgress extends StatelessWidget {
             value: progress > 0 ? progress : null,
             minHeight: 8,
             borderRadius: BorderRadius.circular(999),
-            backgroundColor: const Color(0xFFD8E3ED),
-            valueColor: const AlwaysStoppedAnimation(Color(0xFFE66A3B)),
+            backgroundColor: palette.progressTrack,
+            valueColor: const AlwaysStoppedAnimation(_accentColor),
           ),
           const SizedBox(height: 8),
           Text(
             progress > 0
                 ? l10n.downloadConnectionProgress(progress)
                 : l10n.connectingDownload,
-            style: const TextStyle(color: Color(0xFF54697A)),
+            style: TextStyle(color: palette.textSecondary),
           ),
         ],
       ),
@@ -1746,11 +1858,12 @@ class _FooterNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = _AppPalette.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.84),
+        color: palette.footerBackground,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -1761,23 +1874,210 @@ class _FooterNote extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF10273F),
+              color: palette.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             l10n.footerDescription1,
-            style: TextStyle(color: Color(0xFF54697A), height: 1.5),
+            style: TextStyle(color: palette.textSecondary, height: 1.5),
           ),
           const SizedBox(height: 8),
           Text(
             l10n.footerDescription2,
-            style: TextStyle(color: Color(0xFF54697A), height: 1.5),
+            style: TextStyle(color: palette.textSecondary, height: 1.5),
           ),
         ],
       ),
     );
   }
+}
+
+class _ThemeSelectionDialog extends StatefulWidget {
+  const _ThemeSelectionDialog({
+    required this.initialMode,
+  });
+
+  final ThemeMode initialMode;
+
+  @override
+  State<_ThemeSelectionDialog> createState() => _ThemeSelectionDialogState();
+}
+
+class _ThemeSelectionDialogState extends State<_ThemeSelectionDialog> {
+  late ThemeMode _selectedMode = widget.initialMode;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final palette = _AppPalette.of(context);
+    const options = <ThemeMode>[
+      ThemeMode.system,
+      ThemeMode.light,
+      ThemeMode.dark,
+    ];
+
+    return AlertDialog(
+      title: Text(l10n.selectDisplayMode),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.selectDisplayModeHint,
+              style: TextStyle(
+                color: palette.textSecondary,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 14),
+            for (final mode in options)
+              RadioListTile<ThemeMode>(
+                value: mode,
+                groupValue: _selectedMode,
+                activeColor: _accentColor,
+                onChanged: (value) {
+                  if (value == null) {
+                    return;
+                  }
+                  setState(() {
+                    _selectedMode = value;
+                  });
+                },
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.themeModeDisplayName(mode)),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_selectedMode),
+          style: FilledButton.styleFrom(
+            backgroundColor: _accentColor,
+            foregroundColor: Colors.white,
+          ),
+          child: Text(l10n.confirm),
+        ),
+      ],
+    );
+  }
+}
+
+const _accentColor = Color(0xFFE66A3B);
+
+class _AppPalette {
+  const _AppPalette({
+    required this.pageGradientTop,
+    required this.pageGradientBottom,
+    required this.heroGradientStart,
+    required this.heroGradientEnd,
+    required this.topButtonBackground,
+    required this.topButtonForeground,
+    required this.heroBodyText,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textMuted,
+    required this.previewBackground,
+    required this.mutedSurface,
+    required this.softSurface,
+    required this.softForeground,
+    required this.assetCardBackground,
+    required this.footerBackground,
+    required this.successBackground,
+    required this.successForeground,
+    required this.errorBackground,
+    required this.errorForeground,
+    required this.warningBackground,
+    required this.warningForeground,
+    required this.progressTrack,
+  });
+
+  final Color pageGradientTop;
+  final Color pageGradientBottom;
+  final Color heroGradientStart;
+  final Color heroGradientEnd;
+  final Color topButtonBackground;
+  final Color topButtonForeground;
+  final Color heroBodyText;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textMuted;
+  final Color previewBackground;
+  final Color mutedSurface;
+  final Color softSurface;
+  final Color softForeground;
+  final Color assetCardBackground;
+  final Color footerBackground;
+  final Color successBackground;
+  final Color successForeground;
+  final Color errorBackground;
+  final Color errorForeground;
+  final Color warningBackground;
+  final Color warningForeground;
+  final Color progressTrack;
+
+  static _AppPalette of(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark ? _dark : _light;
+  }
+
+  static const _light = _AppPalette(
+    pageGradientTop: Color(0xFF0D355C),
+    pageGradientBottom: Color(0xFFF7F2E8),
+    heroGradientStart: Color(0xFF113B69),
+    heroGradientEnd: Color(0xFF1B5B8B),
+    topButtonBackground: Color(0x1FFFFFFF),
+    topButtonForeground: Colors.white,
+    heroBodyText: Color(0xFFD9E7F5),
+    textPrimary: Color(0xFF10273F),
+    textSecondary: Color(0xFF4D6172),
+    textMuted: Color(0xFF5D7284),
+    previewBackground: Color(0xFFE6EDF3),
+    mutedSurface: Color(0xFFF2F6FA),
+    softSurface: Color(0xFFF4F7FB),
+    softForeground: Color(0xFF34506A),
+    assetCardBackground: Colors.white,
+    footerBackground: Color(0xD6FFFFFF),
+    successBackground: Color(0xFFE1F4EB),
+    successForeground: Color(0xFF1C7D52),
+    errorBackground: Color(0xFFFFE9E3),
+    errorForeground: Color(0xFF8A2A17),
+    warningBackground: Color(0xFFFFF2D8),
+    warningForeground: Color(0xFF7A4D04),
+    progressTrack: Color(0xFFD8E3ED),
+  );
+
+  static const _dark = _AppPalette(
+    pageGradientTop: Color(0xFF09111A),
+    pageGradientBottom: Color(0xFF0F1822),
+    heroGradientStart: Color(0xFF12293D),
+    heroGradientEnd: Color(0xFF1D4463),
+    topButtonBackground: Color(0x1AF1F6FB),
+    topButtonForeground: Color(0xFFF1F6FB),
+    heroBodyText: Color(0xFFC9D9E9),
+    textPrimary: Color(0xFFF1F6FB),
+    textSecondary: Color(0xFFB4C4D4),
+    textMuted: Color(0xFF8FA4B8),
+    previewBackground: Color(0xFF1A2633),
+    mutedSurface: Color(0xFF1A2633),
+    softSurface: Color(0xFF1C2A38),
+    softForeground: Color(0xFFC7D3DF),
+    assetCardBackground: Color(0xFF162230),
+    footerBackground: Color(0xDD15212D),
+    successBackground: Color(0xFF18382A),
+    successForeground: Color(0xFF8BDAB4),
+    errorBackground: Color(0xFF472720),
+    errorForeground: Color(0xFFFFB8A8),
+    warningBackground: Color(0xFF43351A),
+    warningForeground: Color(0xFFF4D37B),
+    progressTrack: Color(0xFF304150),
+  );
 }
 
 String _formatDuration(Duration duration) {

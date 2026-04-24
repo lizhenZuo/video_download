@@ -175,6 +175,13 @@ class AppLocalizations {
   String get languageSettingHint => _text('languageSettingHint');
   String get selectLanguage => _text('selectLanguage');
   String get selectLanguageHint => _text('selectLanguageHint');
+  String get displayMode => _text('displayMode');
+  String get displayModeSettingHint => _text('displayModeSettingHint');
+  String get selectDisplayMode => _text('selectDisplayMode');
+  String get selectDisplayModeHint => _text('selectDisplayModeHint');
+  String get followPhoneMode => _text('followPhoneMode');
+  String get lightMode => _text('lightMode');
+  String get darkMode => _text('darkMode');
   String get confirm => _text('confirm');
   String get parseVideo => _text('parseVideo');
   String get parsing => _text('parsing');
@@ -253,7 +260,8 @@ class AppLocalizations {
   String get membersOnlyVideo => _text('membersOnlyVideo');
   String get regionRestricted => _text('regionRestricted');
   String get signInRequired => _text('signInRequired');
-  String get unsupportedPlatformsMessage => _text('unsupportedPlatformsMessage');
+  String get unsupportedPlatformsMessage =>
+      _text('unsupportedPlatformsMessage');
   String get iiilabUnsupportedLink => _text('iiilabUnsupportedLink');
   String get snapAnyUnsupportedLink => _text('snapAnyUnsupportedLink');
   String get douyinStructureChanged => _text('douyinStructureChanged');
@@ -498,6 +506,14 @@ class AppLocalizations {
     };
   }
 
+  String themeModeDisplayName(ThemeMode mode) {
+    return switch (mode) {
+      ThemeMode.system => followPhoneMode,
+      ThemeMode.light => lightMode,
+      ThemeMode.dark => darkMode,
+    };
+  }
+
   String _compactCount(int value, String suffix) {
     return switch (_language) {
       _AppLanguage.zhHans => _compactZh(value, suffix, '亿', '万'),
@@ -566,9 +582,20 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
   _AppLanguage.en: {
     'settingsCenter': 'Settings',
     'language': 'Language',
-    'languageSettingHint': 'Open the language picker and switch the app display language.',
+    'languageSettingHint':
+        'Open the language picker and switch the app display language.',
     'selectLanguage': 'Select Language',
-    'selectLanguageHint': 'Choose a language, then confirm to apply it immediately.',
+    'selectLanguageHint':
+        'Choose a language, then confirm to apply it immediately.',
+    'displayMode': 'Display Mode',
+    'displayModeSettingHint':
+        'Switch between follow-phone, light, and dark appearance modes.',
+    'selectDisplayMode': 'Choose Display Mode',
+    'selectDisplayModeHint':
+        'Choose a mode and confirm to apply it immediately.',
+    'followPhoneMode': 'Follow Phone',
+    'lightMode': 'Light Mode',
+    'darkMode': 'Dark Mode',
     'confirm': 'Confirm',
     'parseVideo': 'Parse Video',
     'parsing': 'Parsing...',
@@ -673,7 +700,8 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'Streams above 1080p are usually video-only. Merge them with audio if you want a directly playable file.',
     'parseServiceExtraLimit':
         'The parser service is currently under extra restrictions. Please try again later.',
-    'parseServiceNoResult': 'The parser service did not return a usable result.',
+    'parseServiceNoResult':
+        'The parser service did not return a usable result.',
     'parseServiceNoMedia': 'No downloadable media was found for this content.',
     'snapAnyNoResult': 'SnapAny did not return a usable result.',
     'snapAnyNoMedia': 'No downloadable media was found in SnapAny.',
@@ -698,7 +726,8 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'The parser service returned an unexpected payload and cannot be handled for now.',
     'snapAnyFormatChanged':
         'SnapAny returned an unexpected payload and cannot be handled for now.',
-    'douyinNoRouterData': 'No parseable route data was found on the Douyin page.',
+    'douyinNoRouterData':
+        'No parseable route data was found on the Douyin page.',
     'douyinRouteDataInvalid': 'The Douyin route payload is invalid.',
     'douyinLoaderDataMissing': 'The Douyin page is missing loaderData.',
     'douyinNoVideoInfo': 'No video information was found on the Douyin page.',
@@ -709,8 +738,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'The current Douyin video does not expose usable download URLs.',
     'bilibiliShortLinkInvalid':
         'The short link did not resolve to a usable Bilibili video URL.',
-    'bilibiliNoPageContent':
-        'The Bilibili page returned no parseable content.',
+    'bilibiliNoPageContent': 'The Bilibili page returned no parseable content.',
     'bilibiliNoVideoInfo':
         'No usable video information was found on the Bilibili page.',
     'bilibiliNoDownloadAddress':
@@ -745,8 +773,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'The current {platform} content does not expose a usable video stream.',
     'parseFailed': 'Failed to parse {platform}: {error}',
     'timeoutMessage': 'Timed out while connecting to {platform}. {detail}',
-    'networkUnavailable':
-        'This device cannot reach {platform}. {detail}',
+    'networkUnavailable': 'This device cannot reach {platform}. {detail}',
     'handshakeFailed':
         'Failed to establish a secure connection with {platform}. {detail}',
     'requestRejected': '{platform} rejected this request for now. {detail}',
@@ -813,6 +840,13 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'languageSettingHint': '进入语言选择页并切换 App 显示语言。',
     'selectLanguage': '选择语言',
     'selectLanguageHint': '选中新的语言后点击确认，会立即应用并返回首页。',
+    'displayMode': '显示模式',
+    'displayModeSettingHint': '切换跟随手机、普通模式或暗黑模式。',
+    'selectDisplayMode': '选择显示模式',
+    'selectDisplayModeHint': '选中新的模式后点击确认，会立即应用并返回首页。',
+    'followPhoneMode': '跟随手机',
+    'lightMode': '普通模式',
+    'darkMode': '暗黑模式',
     'confirm': '确认',
     'parseVideo': '解析视频',
     'parsing': '解析中...',
@@ -838,8 +872,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'heroPlatforms': 'YouTube + 抖音 + 多平台',
     'heroInProgress': '进行中',
     'heroReady': '可直接运行',
-    'heroDescription':
-        '把链接粘进来，解析封面和可下载的视频、音频、图片或分享页直链，支持保存到本地、相册和系统分享。',
+    'heroDescription': '把链接粘进来，解析封面和可下载的视频、音频、图片或分享页直链，支持保存到本地、相册和系统分享。',
     'quickDownload': '快速下载',
     'quickDownloadSubtitle': '最常用的下载项，会根据平台能力自动变化。',
     'playableVideos': '可直接播放的视频流',
@@ -851,8 +884,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'imageDownloads': '图片 / 封面下载',
     'imageDownloadsSubtitle': '图集原图、封面图会统一放在这里。',
     'clearCache': '清空缓存',
-    'cacheDialogContent':
-        '当前缓存约 {cacheSize}。清空后，App 内已下载但未另存到系统相册的位置文件会被删除。',
+    'cacheDialogContent': '当前缓存约 {cacheSize}。清空后，App 内已下载但未另存到系统相册的位置文件会被删除。',
     'emptyCacheDialogContent': '当前没有可清理的缓存。仍然继续刷新缓存状态吗？',
     'cancel': '取消',
     'clear': '清空',
@@ -864,8 +896,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'cacheSize': '缓存大小',
     'clearingCache': '正在清空 App 缓存...',
     'clearCacheHint': '点击后可清空 App 内下载目录中的缓存文件。',
-    'cacheFootnote':
-        '这里清理的是 App 管理目录里的下载文件，不会影响你已经保存到系统相册或通过系统分享出去的副本。',
+    'cacheFootnote': '这里清理的是 App 管理目录里的下载文件，不会影响你已经保存到系统相册或通过系统分享出去的副本。',
     'coverLoadFailed': '封面加载失败',
     'noAudioTrack': '无音轨',
     'downloadingPercent': '下载中 {progress}%',
@@ -874,8 +905,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'connectingDownload': '正在建立下载连接...',
     'downloadConnectionProgress': '{progress}%',
     'footerTitle': '实现说明',
-    'footerDescription1':
-        '这个版本复刻的是站点的核心能力，不是把网页嵌进去：输入链接、拿到视频元数据、展示下载项、保存到本地。',
+    'footerDescription1': '这个版本复刻的是站点的核心能力，不是把网页嵌进去：输入链接、拿到视频元数据、展示下载项、保存到本地。',
     'footerDescription2':
         '当前已接入 YouTube、抖音，以及 iiilab / SnapAny 当前公开支持的 TikTok、Bilibili、微博、Twitter、Instagram、Facebook、Vimeo、Threads 等平台。不同平台的直链都有时效，解析后建议尽快下载。',
     'invalidVideoUrl': '请输入有效的视频链接。',
@@ -898,11 +928,9 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'noWatermark': '无水印',
     'withWatermark': '带水印',
     'defaultCover': '默认封面',
-    'unavailableMessage':
-        '当前视频不可播放，或者当前网络环境无法直接拿到 YouTube 媒体流。',
+    'unavailableMessage': '当前视频不可播放，或者当前网络环境无法直接拿到 YouTube 媒体流。',
     'liveStreamNotSupported': '直播流暂不支持离线下载。',
-    'highResWarning':
-        '1080p 以上通常是无音轨视频流，下载后若想直接播放，需要再与音频合并。',
+    'highResWarning': '1080p 以上通常是无音轨视频流，下载后若想直接播放，需要再与音频合并。',
     'parseServiceExtraLimit': '解析服务当前触发了额外限制，请稍后重试。',
     'parseServiceNoResult': '解析服务没有返回可用结果。',
     'parseServiceNoMedia': '当前内容没有可下载的媒体资源。',
@@ -978,14 +1006,10 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'contentTitle': '{platform} 内容',
     'parseResultTitle': '{platform} 解析结果',
     'defaultAuthor': '{platform}作者',
-    'bilibiliWarning':
-        '当前通过{platform}移动页直接解析，视频和封面直链都有时效，解析后建议尽快下载。',
-    'douyinWarning':
-        '当前通过{platform}分享页解析，只提供直连 MP4 视频和封面图；独立音频与更多清晰度暂不提供。',
-    'iiilabWarning':
-        '当前通过 iiilab 通用解析接口返回直链，资源链接通常有时效，建议尽快下载。',
-    'snapAnyWarning':
-        '当前通过 SnapAny 在线解析接口返回直链，资源链接通常有时效，建议尽快下载。',
+    'bilibiliWarning': '当前通过{platform}移动页直接解析，视频和封面直链都有时效，解析后建议尽快下载。',
+    'douyinWarning': '当前通过{platform}分享页解析，只提供直连 MP4 视频和封面图；独立音频与更多清晰度暂不提供。',
+    'iiilabWarning': '当前通过 iiilab 通用解析接口返回直链，资源链接通常有时效，建议尽快下载。',
+    'snapAnyWarning': '当前通过 SnapAny 在线解析接口返回直链，资源链接通常有时效，建议尽快下载。',
     'overseasNetworkWarning': '下载{platform}资源仍然依赖当前网络环境。',
     'muxingWarning': '部分高分辨率视频不带音轨，如需直接播放，需要再和音频合并。',
     'youtubeTimeoutDetail': '通常是当前网络无法稳定访问 YouTube。',
@@ -1010,6 +1034,13 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'languageSettingHint': '進入語言選擇頁並切換 App 顯示語言。',
     'selectLanguage': '選擇語言',
     'selectLanguageHint': '選取新的語言後點擊確認，會立即套用並返回首頁。',
+    'displayMode': '顯示模式',
+    'displayModeSettingHint': '切換跟隨手機、普通模式或暗黑模式。',
+    'selectDisplayMode': '選擇顯示模式',
+    'selectDisplayModeHint': '選取新的模式後點擊確認，會立即套用並返回首頁。',
+    'followPhoneMode': '跟隨手機',
+    'lightMode': '普通模式',
+    'darkMode': '暗黑模式',
     'confirm': '確認',
     'parseVideo': '解析影片',
     'parsing': '解析中...',
@@ -1035,8 +1066,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'heroPlatforms': 'YouTube + 抖音 + 多平台',
     'heroInProgress': '進行中',
     'heroReady': '可直接執行',
-    'heroDescription':
-        '把連結貼進來，解析封面與可下載的影片、音訊、圖片或分享頁直鏈，支援儲存到本機、相簿與系統分享。',
+    'heroDescription': '把連結貼進來，解析封面與可下載的影片、音訊、圖片或分享頁直鏈，支援儲存到本機、相簿與系統分享。',
     'quickDownload': '快速下載',
     'quickDownloadSubtitle': '最常用的下載項會依平台能力自動變化。',
     'playableVideos': '可直接播放的影片串流',
@@ -1048,8 +1078,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'imageDownloads': '圖片 / 封面下載',
     'imageDownloadsSubtitle': '圖集原圖與封面圖會統一放在這裡。',
     'clearCache': '清除快取',
-    'cacheDialogContent':
-        '目前快取約 {cacheSize}。清除後，App 內已下載但未另存到系統相簿的位置檔案會被刪除。',
+    'cacheDialogContent': '目前快取約 {cacheSize}。清除後，App 內已下載但未另存到系統相簿的位置檔案會被刪除。',
     'emptyCacheDialogContent': '目前沒有可清理的快取。仍要繼續重新整理快取狀態嗎？',
     'cancel': '取消',
     'clear': '清除',
@@ -1061,8 +1090,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'cacheSize': '快取大小',
     'clearingCache': '正在清除 App 快取...',
     'clearCacheHint': '點擊後可清除 App 下載目錄中的快取檔案。',
-    'cacheFootnote':
-        '這裡清理的是 App 管理目錄中的下載檔案，不會影響你已經儲存到系統相簿或透過系統分享送出的副本。',
+    'cacheFootnote': '這裡清理的是 App 管理目錄中的下載檔案，不會影響你已經儲存到系統相簿或透過系統分享送出的副本。',
     'coverLoadFailed': '封面載入失敗',
     'noAudioTrack': '無音軌',
     'downloadingPercent': '下載中 {progress}%',
@@ -1095,11 +1123,9 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'noWatermark': '無浮水印',
     'withWatermark': '有浮水印',
     'defaultCover': '預設封面',
-    'unavailableMessage':
-        '目前影片不可播放，或當前網路環境無法直接取得 YouTube 媒體串流。',
+    'unavailableMessage': '目前影片不可播放，或當前網路環境無法直接取得 YouTube 媒體串流。',
     'liveStreamNotSupported': '直播串流暫不支援離線下載。',
-    'highResWarning':
-        '1080p 以上通常是無音軌影片串流，下載後若想直接播放，需要再與音訊合併。',
+    'highResWarning': '1080p 以上通常是無音軌影片串流，下載後若想直接播放，需要再與音訊合併。',
     'parseServiceExtraLimit': '解析服務目前觸發了額外限制，請稍後重試。',
     'parseServiceNoResult': '解析服務沒有回傳可用結果。',
     'parseServiceNoMedia': '目前內容沒有可下載的媒體資源。',
@@ -1175,14 +1201,10 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'contentTitle': '{platform} 內容',
     'parseResultTitle': '{platform} 解析結果',
     'defaultAuthor': '{platform}作者',
-    'bilibiliWarning':
-        '目前透過{platform}行動頁直接解析，影片與封面直鏈都有時效，解析後建議儘快下載。',
-    'douyinWarning':
-        '目前透過{platform}分享頁解析，只提供直連 MP4 影片與封面圖；獨立音訊與更多清晰度暫不提供。',
-    'iiilabWarning':
-        '目前透過 iiilab 通用解析介面回傳直鏈，資源連結通常有時效，建議儘快下載。',
-    'snapAnyWarning':
-        '目前透過 SnapAny 線上解析介面回傳直鏈，資源連結通常有時效，建議儘快下載。',
+    'bilibiliWarning': '目前透過{platform}行動頁直接解析，影片與封面直鏈都有時效，解析後建議儘快下載。',
+    'douyinWarning': '目前透過{platform}分享頁解析，只提供直連 MP4 影片與封面圖；獨立音訊與更多清晰度暫不提供。',
+    'iiilabWarning': '目前透過 iiilab 通用解析介面回傳直鏈，資源連結通常有時效，建議儘快下載。',
+    'snapAnyWarning': '目前透過 SnapAny 線上解析介面回傳直鏈，資源連結通常有時效，建議儘快下載。',
     'overseasNetworkWarning': '下載{platform}資源仍然依賴目前網路環境。',
     'muxingWarning': '部分高解析度影片不含音軌，如需直接播放，需要再與音訊合併。',
     'youtubeTimeoutDetail': '通常是目前網路無法穩定存取 YouTube。',
@@ -1204,9 +1226,20 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
   _AppLanguage.vi: {
     'settingsCenter': 'Cài đặt',
     'language': 'Ngôn ngữ',
-    'languageSettingHint': 'Mở trang chọn ngôn ngữ và đổi ngôn ngữ hiển thị của ứng dụng.',
+    'languageSettingHint':
+        'Mở trang chọn ngôn ngữ và đổi ngôn ngữ hiển thị của ứng dụng.',
     'selectLanguage': 'Chọn ngôn ngữ',
-    'selectLanguageHint': 'Chọn ngôn ngữ mới rồi nhấn xác nhận để áp dụng ngay.',
+    'selectLanguageHint':
+        'Chọn ngôn ngữ mới rồi nhấn xác nhận để áp dụng ngay.',
+    'displayMode': 'Chế độ hiển thị',
+    'displayModeSettingHint':
+        'Chuyển giữa chế độ theo điện thoại, sáng hoặc tối.',
+    'selectDisplayMode': 'Chọn chế độ hiển thị',
+    'selectDisplayModeHint':
+        'Chọn chế độ mới rồi nhấn xác nhận để áp dụng ngay.',
+    'followPhoneMode': 'Theo điện thoại',
+    'lightMode': 'Chế độ sáng',
+    'darkMode': 'Chế độ tối',
     'confirm': 'Xác nhận',
     'parseVideo': 'Phân tích video',
     'parsing': 'Đang phân tích...',
@@ -1242,11 +1275,9 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'playableVideos': 'Luồng video phát trực tiếp',
     'playableVideosSubtitle': 'Có âm thanh. Có thể mở ngay sau khi tải.',
     'audioStreams': 'Luồng âm thanh riêng',
-    'audioStreamsSubtitle':
-        'Phù hợp khi chỉ cần âm thanh hoặc muốn ghép sau.',
+    'audioStreamsSubtitle': 'Phù hợp khi chỉ cần âm thanh hoặc muốn ghép sau.',
     'highResVideos': 'Luồng video độ phân giải cao',
-    'highResVideosSubtitle':
-        'Thường là 1080p / 4K nhưng không có âm thanh.',
+    'highResVideosSubtitle': 'Thường là 1080p / 4K nhưng không có âm thanh.',
     'imageDownloads': 'Tải ảnh / ảnh bìa',
     'imageDownloadsSubtitle':
         'Ảnh gốc trong bộ sưu tập và ảnh bìa sẽ được gom ở đây.',
@@ -1283,9 +1314,9 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'invalidVideoUrl': 'Vui lòng nhập liên kết video hợp lệ.',
     'unsupportedPlatformsMessage':
         'Hiện chỉ hỗ trợ YouTube, Douyin, Bilibili và các nền tảng đang được iiilab / SnapAny công khai hỗ trợ như TikTok, Twitter, Instagram, Facebook, Vimeo và Threads.',
-    'noAvailableDownloadUrl':
-        'Mục tải xuống này không có địa chỉ tệp hợp lệ.',
-    'outputDirectoryUnavailable': 'Không thể xác định thư mục tải xuống khả dụng.',
+    'noAvailableDownloadUrl': 'Mục tải xuống này không có địa chỉ tệp hợp lệ.',
+    'outputDirectoryUnavailable':
+        'Không thể xác định thư mục tải xuống khả dụng.',
     'unknownBitrate': 'Bitrate không xác định',
     'defaultDownloadItem': 'Mục tải xuống mặc định',
     'directLink': 'Liên kết trực tiếp',
@@ -1309,8 +1340,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'Các luồng trên 1080p thường chỉ có video. Hãy ghép với âm thanh nếu muốn phát trực tiếp.',
     'parseServiceExtraLimit':
         'Dịch vụ phân tích hiện đang bị hạn chế thêm. Vui lòng thử lại sau.',
-    'parseServiceNoResult':
-        'Dịch vụ phân tích không trả về kết quả khả dụng.',
+    'parseServiceNoResult': 'Dịch vụ phân tích không trả về kết quả khả dụng.',
     'parseServiceNoMedia':
         'Không tìm thấy tài nguyên media có thể tải xuống cho nội dung này.',
     'snapAnyNoResult': 'SnapAny không trả về kết quả khả dụng.',
@@ -1321,8 +1351,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'privateVideo': 'Video này ở chế độ riêng tư và không thể tải xuống.',
     'membersOnlyVideo':
         'Video này chỉ dành cho thành viên và hiện không thể tải xuống.',
-    'regionRestricted':
-        'Video này bị giới hạn khu vực đối với mạng hiện tại.',
+    'regionRestricted': 'Video này bị giới hạn khu vực đối với mạng hiện tại.',
     'signInRequired':
         'Video này yêu cầu trạng thái đăng nhập và hiện không thể truy cập.',
     'iiilabUnsupportedLink':
@@ -1341,8 +1370,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'Không tìm thấy dữ liệu route có thể phân tích trên trang Douyin.',
     'douyinRouteDataInvalid': 'Dữ liệu route của Douyin không hợp lệ.',
     'douyinLoaderDataMissing': 'Trang Douyin thiếu loaderData.',
-    'douyinNoVideoInfo':
-        'Không tìm thấy thông tin video trên trang Douyin.',
+    'douyinNoVideoInfo': 'Không tìm thấy thông tin video trên trang Douyin.',
     'douyinNoShareData':
         'Video Douyin hiện tại không có dữ liệu trang chia sẻ khả dụng.',
     'douyinNoPageContent':
@@ -1357,8 +1385,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'Không tìm thấy thông tin video khả dụng trên trang Bilibili.',
     'bilibiliNoDownloadAddress':
         'Video Bilibili hiện tại không có địa chỉ tải xuống khả dụng.',
-    'bilibiliNoCover':
-        'Video Bilibili hiện tại không có ảnh bìa khả dụng.',
+    'bilibiliNoCover': 'Video Bilibili hiện tại không có ảnh bìa khả dụng.',
     'bilibiliNoVideoStream':
         'Video Bilibili hiện tại không có luồng video khả dụng.',
     'platformDouyin': 'Douyin',
@@ -1376,8 +1403,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'platformXiaoying': 'Xiaoying / VivaVideo',
     'platformPearVideo': 'Pear Video',
     'invalidPlatformUrl': 'Vui lòng nhập liên kết {platform} hợp lệ.',
-    'noPageContent':
-        'Trang {platform} không trả về nội dung có thể phân tích.',
+    'noPageContent': 'Trang {platform} không trả về nội dung có thể phân tích.',
     'noVideoInfo':
         'Không tìm thấy thông tin video khả dụng cho nội dung {platform} hiện tại.',
     'noDownloadAddress':
@@ -1388,7 +1414,8 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'Nội dung {platform} hiện tại không có luồng video khả dụng.',
     'parseFailed': 'Phân tích {platform} thất bại: {error}',
     'timeoutMessage': 'Hết thời gian kết nối tới {platform}. {detail}',
-    'networkUnavailable': 'Thiết bị này không thể kết nối tới {platform}. {detail}',
+    'networkUnavailable':
+        'Thiết bị này không thể kết nối tới {platform}. {detail}',
     'handshakeFailed':
         'Không thể thiết lập kết nối bảo mật với {platform}. {detail}',
     'requestRejected': '{platform} tạm thời từ chối yêu cầu này. {detail}',
@@ -1429,14 +1456,12 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'Mạng hiện tại thường không truy cập YouTube ổn định.',
     'youtubeNetworkDetail':
         'Hãy xác nhận mạng hiện tại có thể truy cập YouTube rồi thử lại.',
-    'youtubeHandshakeDetail':
-        'Hãy kiểm tra cấu hình mạng hoặc proxy hiện tại.',
+    'youtubeHandshakeDetail': 'Hãy kiểm tra cấu hình mạng hoặc proxy hiện tại.',
     'douyinTimeoutDetail':
         'Mạng hiện tại thường không truy cập ổn định trang chia sẻ Douyin.',
     'douyinNetworkDetail':
         'Hãy xác nhận mạng hiện tại có thể truy cập Douyin rồi thử lại.',
-    'douyinHandshakeDetail':
-        'Hãy kiểm tra cấu hình mạng hoặc proxy hiện tại.',
+    'douyinHandshakeDetail': 'Hãy kiểm tra cấu hình mạng hoặc proxy hiện tại.',
     'bilibiliTimeoutDetail': 'Vui lòng thử lại sau.',
     'bilibiliNetworkDetail': 'Kiểm tra kết nối mạng rồi thử lại.',
     'bilibiliHandshakeDetail': 'Kiểm tra môi trường mạng hiện tại.',
@@ -1444,8 +1469,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'parserNetworkDetail': 'Kiểm tra kết nối mạng rồi thử lại.',
     'parserHandshakeDetail': 'Kiểm tra môi trường mạng hiện tại.',
     'retryLaterDetail': 'Thử lại sau sẽ ổn định hơn.',
-    'snapAnyRetryLaterDetail':
-        'Hãy đợi một lát rồi thử lại để ổn định hơn.',
+    'snapAnyRetryLaterDetail': 'Hãy đợi một lát rồi thử lại để ổn định hơn.',
     'snapAnyRateLimited':
         'SnapAny hiện đang giới hạn tần suất yêu cầu. Vui lòng thử lại sau.',
   },
@@ -1454,7 +1478,17 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'language': 'भाषा',
     'languageSettingHint': 'भाषा चयन पेज खोलें और ऐप की डिस्प्ले भाषा बदलें।',
     'selectLanguage': 'भाषा चुनें',
-    'selectLanguageHint': 'नई भाषा चुनकर पुष्टि दबाएं, भाषा तुरंत लागू हो जाएगी।',
+    'selectLanguageHint':
+        'नई भाषा चुनकर पुष्टि दबाएं, भाषा तुरंत लागू हो जाएगी।',
+    'displayMode': 'डिस्प्ले मोड',
+    'displayModeSettingHint':
+        'फोन के अनुसार, लाइट मोड या डार्क मोड के बीच बदलें।',
+    'selectDisplayMode': 'डिस्प्ले मोड चुनें',
+    'selectDisplayModeHint':
+        'नया मोड चुनकर पुष्टि करें, यह तुरंत लागू हो जाएगा।',
+    'followPhoneMode': 'फोन के अनुसार',
+    'lightMode': 'लाइट मोड',
+    'darkMode': 'डार्क मोड',
     'confirm': 'पुष्टि करें',
     'parseVideo': 'वीडियो पार्स करें',
     'parsing': 'पार्स किया जा रहा है...',
@@ -1488,8 +1522,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'quickDownloadSubtitle':
         'सबसे आम आइटम यहां दिखेंगे और प्लेटफ़ॉर्म क्षमता के अनुसार बदलेंगे।',
     'playableVideos': 'सीधे चलने योग्य वीडियो स्ट्रीम',
-    'playableVideosSubtitle':
-        'ऑडियो सहित। डाउनलोड के बाद सीधे खोल सकते हैं।',
+    'playableVideosSubtitle': 'ऑडियो सहित। डाउनलोड के बाद सीधे खोल सकते हैं।',
     'audioStreams': 'अलग ऑडियो स्ट्रीम',
     'audioStreamsSubtitle':
         'सिर्फ आवाज़ चाहिए या बाद में मर्ज करना हो तो उपयोगी।',
@@ -1497,8 +1530,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'highResVideosSubtitle':
         'अक्सर 1080p / 4K होते हैं, लेकिन आमतौर पर बिना ऑडियो के।',
     'imageDownloads': 'इमेज / कवर डाउनलोड',
-    'imageDownloadsSubtitle':
-        'मूल इमेज और कवर इमेज यहां एक साथ दिखाई जाएंगी।',
+    'imageDownloadsSubtitle': 'मूल इमेज और कवर इमेज यहां एक साथ दिखाई जाएंगी।',
     'clearCache': 'कैश साफ़ करें',
     'cacheDialogContent':
         'मौजूदा कैश लगभग {cacheSize} है। साफ़ करने के बाद, ऐप के अंदर डाउनलोड की गई लेकिन कहीं और सहेजी न गई फाइलें हट जाएंगी।',
@@ -1532,8 +1564,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'invalidVideoUrl': 'कृपया एक मान्य वीडियो लिंक दर्ज करें।',
     'unsupportedPlatformsMessage':
         'फिलहाल केवल YouTube, Douyin, Bilibili और iiilab / SnapAny द्वारा सार्वजनिक रूप से समर्थित TikTok, Twitter, Instagram, Facebook, Vimeo और Threads जैसे प्लेटफ़ॉर्म समर्थित हैं।',
-    'noAvailableDownloadUrl':
-        'चयनित आइटम में मान्य फ़ाइल URL नहीं है।',
+    'noAvailableDownloadUrl': 'चयनित आइटम में मान्य फ़ाइल URL नहीं है।',
     'outputDirectoryUnavailable': 'उपलब्ध डाउनलोड डायरेक्टरी नहीं मिल सकी।',
     'unknownBitrate': 'अज्ञात बिटरेट',
     'defaultDownloadItem': 'डिफ़ॉल्ट डाउनलोड आइटम',
@@ -1558,13 +1589,11 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         '1080p से ऊपर की स्ट्रीम अक्सर केवल वीडियो होती हैं। सीधे चलाने के लिए इन्हें ऑडियो से मर्ज करें।',
     'parseServiceExtraLimit':
         'पार्स सेवा पर अतिरिक्त प्रतिबंध सक्रिय है। कृपया बाद में फिर प्रयास करें।',
-    'parseServiceNoResult':
-        'पार्स सेवा ने उपयोगी परिणाम नहीं लौटाया।',
+    'parseServiceNoResult': 'पार्स सेवा ने उपयोगी परिणाम नहीं लौटाया।',
     'parseServiceNoMedia':
         'इस सामग्री के लिए कोई डाउनलोड योग्य मीडिया नहीं मिला।',
     'snapAnyNoResult': 'SnapAny ने उपयोगी परिणाम नहीं लौटाया।',
-    'snapAnyNoMedia':
-        'SnapAny में कोई डाउनलोड योग्य मीडिया नहीं मिला।',
+    'snapAnyNoMedia': 'SnapAny में कोई डाउनलोड योग्य मीडिया नहीं मिला।',
     'ageRestricted':
         'यह वीडियो आयु-सीमित है और मौजूदा पार्सिंग तरीका इसकी स्ट्रीम तक नहीं पहुंच सकता।',
     'privateVideo': 'यह वीडियो निजी है और डाउनलोड नहीं किया जा सकता।',
@@ -1590,24 +1619,20 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'Douyin पेज पर पार्स करने योग्य route डेटा नहीं मिला।',
     'douyinRouteDataInvalid': 'Douyin route डेटा अमान्य है।',
     'douyinLoaderDataMissing': 'Douyin पेज में loaderData नहीं है।',
-    'douyinNoVideoInfo':
-        'Douyin पेज पर वीडियो जानकारी नहीं मिली।',
+    'douyinNoVideoInfo': 'Douyin पेज पर वीडियो जानकारी नहीं मिली।',
     'douyinNoShareData':
         'मौजूदा Douyin वीडियो में उपयोगी share-page डेटा नहीं है।',
-    'douyinNoPageContent':
-        'Douyin पेज ने पार्स करने योग्य सामग्री नहीं लौटाई।',
+    'douyinNoPageContent': 'Douyin पेज ने पार्स करने योग्य सामग्री नहीं लौटाई।',
     'douyinNoDownloadAddress':
         'मौजूदा Douyin वीडियो में उपयोगी डाउनलोड URL नहीं हैं।',
     'bilibiliShortLinkInvalid':
         'शॉर्ट लिंक उपयोगी Bilibili वीडियो URL में resolve नहीं हुआ।',
     'bilibiliNoPageContent':
         'Bilibili पेज ने पार्स करने योग्य सामग्री नहीं लौटाई।',
-    'bilibiliNoVideoInfo':
-        'Bilibili पेज पर उपयोगी वीडियो जानकारी नहीं मिली।',
+    'bilibiliNoVideoInfo': 'Bilibili पेज पर उपयोगी वीडियो जानकारी नहीं मिली।',
     'bilibiliNoDownloadAddress':
         'मौजूदा Bilibili वीडियो में उपयोगी डाउनलोड URL नहीं हैं।',
-    'bilibiliNoCover':
-        'मौजूदा Bilibili वीडियो में उपयोगी कवर इमेज नहीं है।',
+    'bilibiliNoCover': 'मौजूदा Bilibili वीडियो में उपयोगी कवर इमेज नहीं है।',
     'bilibiliNoVideoStream':
         'मौजूदा Bilibili वीडियो में उपयोगी वीडियो स्ट्रीम नहीं है।',
     'platformDouyin': 'Douyin',
@@ -1625,8 +1650,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'platformXiaoying': 'Xiaoying / VivaVideo',
     'platformPearVideo': 'Pear Video',
     'invalidPlatformUrl': 'कृपया मान्य {platform} लिंक दर्ज करें।',
-    'noPageContent':
-        '{platform} पेज ने पार्स करने योग्य सामग्री नहीं लौटाई।',
+    'noPageContent': '{platform} पेज ने पार्स करने योग्य सामग्री नहीं लौटाई।',
     'noVideoInfo':
         'मौजूदा {platform} सामग्री के लिए उपयोगी वीडियो जानकारी नहीं मिली।',
     'noDownloadAddress':
@@ -1678,14 +1702,12 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'मौजूदा नेटवर्क आमतौर पर YouTube तक स्थिर पहुंच नहीं देता।',
     'youtubeNetworkDetail':
         'सुनिश्चित करें कि मौजूदा नेटवर्क YouTube तक पहुंच सकता है, फिर दोबारा प्रयास करें।',
-    'youtubeHandshakeDetail':
-        'मौजूदा नेटवर्क या प्रॉक्सी कॉन्फ़िगरेशन जांचें।',
+    'youtubeHandshakeDetail': 'मौजूदा नेटवर्क या प्रॉक्सी कॉन्फ़िगरेशन जांचें।',
     'douyinTimeoutDetail':
         'मौजूदा नेटवर्क अक्सर Douyin share page तक स्थिर पहुंच नहीं देता।',
     'douyinNetworkDetail':
         'सुनिश्चित करें कि मौजूदा नेटवर्क Douyin तक पहुंच सकता है, फिर दोबारा प्रयास करें।',
-    'douyinHandshakeDetail':
-        'मौजूदा नेटवर्क या प्रॉक्सी कॉन्फ़िगरेशन जांचें।',
+    'douyinHandshakeDetail': 'मौजूदा नेटवर्क या प्रॉक्सी कॉन्फ़िगरेशन जांचें।',
     'bilibiliTimeoutDetail': 'कृपया बाद में फिर प्रयास करें।',
     'bilibiliNetworkDetail': 'नेटवर्क कनेक्शन जांचें और फिर प्रयास करें।',
     'bilibiliHandshakeDetail': 'मौजूदा नेटवर्क वातावरण जांचें।',
@@ -1704,6 +1726,14 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'languageSettingHint': 'เปิดหน้าการเลือกภาษาและเปลี่ยนภาษาที่แสดงในแอป',
     'selectLanguage': 'เลือกภาษา',
     'selectLanguageHint': 'เลือกภาษาใหม่แล้วกดยืนยันเพื่อใช้งานทันที',
+    'displayMode': 'โหมดการแสดงผล',
+    'displayModeSettingHint':
+        'สลับระหว่างโหมดตามโทรศัพท์ โหมดสว่าง หรือโหมดมืด',
+    'selectDisplayMode': 'เลือกโหมดการแสดงผล',
+    'selectDisplayModeHint': 'เลือกโหมดใหม่แล้วกดยืนยันเพื่อใช้งานทันที',
+    'followPhoneMode': 'ตามโทรศัพท์',
+    'lightMode': 'โหมดสว่าง',
+    'darkMode': 'โหมดมืด',
     'confirm': 'ยืนยัน',
     'parseVideo': 'แยกวิเคราะห์วิดีโอ',
     'parsing': 'กำลังแยกวิเคราะห์...',
@@ -1742,11 +1772,9 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'audioStreamsSubtitle':
         'เหมาะเมื่อคุณต้องการเฉพาะเสียงหรือจะนำไปรวมภายหลัง',
     'highResVideos': 'สตรีมวิดีโอความละเอียดสูง',
-    'highResVideosSubtitle':
-        'มักเป็น 1080p / 4K แต่โดยทั่วไปไม่มีแทร็กเสียง',
+    'highResVideosSubtitle': 'มักเป็น 1080p / 4K แต่โดยทั่วไปไม่มีแทร็กเสียง',
     'imageDownloads': 'ดาวน์โหลดรูปภาพ / ภาพปก',
-    'imageDownloadsSubtitle':
-        'รูปภาพต้นฉบับและภาพปกจะถูกรวมไว้ที่นี่',
+    'imageDownloadsSubtitle': 'รูปภาพต้นฉบับและภาพปกจะถูกรวมไว้ที่นี่',
     'clearCache': 'ล้างแคช',
     'cacheDialogContent':
         'ขนาดแคชปัจจุบันประมาณ {cacheSize} หลังจากล้างแล้ว ไฟล์ที่ดาวน์โหลดภายในแอปแต่ยังไม่ได้บันทึกไว้ที่อื่นจะถูกลบ',
@@ -1761,8 +1789,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'calculating': 'กำลังคำนวณ...',
     'cacheSize': 'ขนาดแคช',
     'clearingCache': 'กำลังล้างแคชของแอป...',
-    'clearCacheHint':
-        'แตะเพื่อล้างไฟล์แคชในโฟลเดอร์ดาวน์โหลดของแอป',
+    'clearCacheHint': 'แตะเพื่อล้างไฟล์แคชในโฟลเดอร์ดาวน์โหลดของแอป',
     'cacheFootnote':
         'การล้างนี้จะลบเฉพาะไฟล์ในโฟลเดอร์ดาวน์โหลดที่แอปจัดการไว้เท่านั้น สำเนาที่บันทึกลงรูปภาพหรือแชร์ออกไปแล้วจะไม่ได้รับผลกระทบ',
     'coverLoadFailed': 'โหลดภาพปกล้มเหลว',
@@ -1780,8 +1807,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'invalidVideoUrl': 'กรุณาใส่ลิงก์วิดีโอที่ถูกต้อง',
     'unsupportedPlatformsMessage':
         'ขณะนี้รองรับเฉพาะ YouTube, Douyin, Bilibili และแพลตฟอร์มที่ iiilab / SnapAny รองรับแบบสาธารณะ เช่น TikTok, Twitter, Instagram, Facebook, Vimeo และ Threads',
-    'noAvailableDownloadUrl':
-        'รายการดาวน์โหลดนี้ไม่มี URL ไฟล์ที่ใช้งานได้',
+    'noAvailableDownloadUrl': 'รายการดาวน์โหลดนี้ไม่มี URL ไฟล์ที่ใช้งานได้',
     'outputDirectoryUnavailable': 'ไม่พบโฟลเดอร์ดาวน์โหลดที่ใช้งานได้',
     'unknownBitrate': 'ไม่ทราบบิตเรต',
     'defaultDownloadItem': 'รายการดาวน์โหลดเริ่มต้น',
@@ -1808,8 +1834,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'บริการแยกวิเคราะห์มีข้อจำกัดเพิ่มเติมอยู่ในขณะนี้ โปรดลองอีกครั้งภายหลัง',
     'parseServiceNoResult':
         'บริการแยกวิเคราะห์ไม่ได้ส่งผลลัพธ์ที่ใช้งานได้กลับมา',
-    'parseServiceNoMedia':
-        'ไม่พบสื่อที่ดาวน์โหลดได้สำหรับเนื้อหานี้',
+    'parseServiceNoMedia': 'ไม่พบสื่อที่ดาวน์โหลดได้สำหรับเนื้อหานี้',
     'snapAnyNoResult': 'SnapAny ไม่ได้ส่งผลลัพธ์ที่ใช้งานได้กลับมา',
     'snapAnyNoMedia': 'ไม่พบสื่อที่ดาวน์โหลดได้ใน SnapAny',
     'ageRestricted':
@@ -1817,8 +1842,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'privateVideo': 'วิดีโอนี้เป็นแบบส่วนตัวและไม่สามารถดาวน์โหลดได้',
     'membersOnlyVideo':
         'วิดีโอนี้เป็นเนื้อหาสำหรับสมาชิกเท่านั้นและยังไม่สามารถดาวน์โหลดได้',
-    'regionRestricted':
-        'วิดีโอนี้ถูกจำกัดตามภูมิภาคสำหรับเครือข่ายปัจจุบัน',
+    'regionRestricted': 'วิดีโอนี้ถูกจำกัดตามภูมิภาคสำหรับเครือข่ายปัจจุบัน',
     'signInRequired':
         'วิดีโอนี้ต้องใช้สถานะการเข้าสู่ระบบ ซึ่งไม่พร้อมใช้งานที่นี่',
     'iiilabUnsupportedLink':
@@ -1837,8 +1861,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'ไม่พบข้อมูล route ที่สามารถแยกวิเคราะห์ได้บนหน้า Douyin',
     'douyinRouteDataInvalid': 'ข้อมูล route ของ Douyin ไม่ถูกต้อง',
     'douyinLoaderDataMissing': 'หน้า Douyin ไม่มี loaderData',
-    'douyinNoVideoInfo':
-        'ไม่พบข้อมูลวิดีโอบนหน้า Douyin',
+    'douyinNoVideoInfo': 'ไม่พบข้อมูลวิดีโอบนหน้า Douyin',
     'douyinNoShareData':
         'วิดีโอ Douyin ปัจจุบันไม่มีข้อมูลหน้าการแชร์ที่ใช้งานได้',
     'douyinNoPageContent':
@@ -1849,12 +1872,10 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'ลิงก์สั้นไม่สามารถแปลงเป็น URL วิดีโอ Bilibili ที่ใช้งานได้',
     'bilibiliNoPageContent':
         'หน้า Bilibili ไม่ได้ส่งเนื้อหาที่แยกวิเคราะห์ได้กลับมา',
-    'bilibiliNoVideoInfo':
-        'ไม่พบข้อมูลวิดีโอที่ใช้งานได้บนหน้า Bilibili',
+    'bilibiliNoVideoInfo': 'ไม่พบข้อมูลวิดีโอที่ใช้งานได้บนหน้า Bilibili',
     'bilibiliNoDownloadAddress':
         'วิดีโอ Bilibili ปัจจุบันไม่มี URL ดาวน์โหลดที่ใช้งานได้',
-    'bilibiliNoCover':
-        'วิดีโอ Bilibili ปัจจุบันไม่มีภาพปกที่ใช้งานได้',
+    'bilibiliNoCover': 'วิดีโอ Bilibili ปัจจุบันไม่มีภาพปกที่ใช้งานได้',
     'bilibiliNoVideoStream':
         'วิดีโอ Bilibili ปัจจุบันไม่มีสตรีมวิดีโอที่ใช้งานได้',
     'platformDouyin': 'Douyin',
@@ -1877,8 +1898,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'ไม่พบข้อมูลวิดีโอที่ใช้งานได้สำหรับเนื้อหา {platform} ปัจจุบัน',
     'noDownloadAddress':
         'เนื้อหา {platform} ปัจจุบันไม่มี URL ดาวน์โหลดที่ใช้งานได้',
-    'noCoverForPlatform':
-        'เนื้อหา {platform} ปัจจุบันไม่มีภาพปกที่ใช้งานได้',
+    'noCoverForPlatform': 'เนื้อหา {platform} ปัจจุบันไม่มีภาพปกที่ใช้งานได้',
     'noVideoStreamForPlatform':
         'เนื้อหา {platform} ปัจจุบันไม่มีสตรีมวิดีโอที่ใช้งานได้',
     'parseFailed': 'แยกวิเคราะห์ {platform} ล้มเหลว: {error}',
@@ -1921,18 +1941,15 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
         'การดาวน์โหลดเนื้อหา {platform} ยังขึ้นอยู่กับเครือข่ายปัจจุบัน',
     'muxingWarning':
         'วิดีโอความละเอียดสูงบางรายการไม่มีเสียง หากต้องการให้เล่นได้ทันทีให้รวมกับแทร็กเสียงก่อน',
-    'youtubeTimeoutDetail':
-        'เครือข่ายปัจจุบันมักเข้าถึง YouTube ได้ไม่เสถียร',
+    'youtubeTimeoutDetail': 'เครือข่ายปัจจุบันมักเข้าถึง YouTube ได้ไม่เสถียร',
     'youtubeNetworkDetail':
         'ตรวจสอบว่าเครือข่ายปัจจุบันเข้าถึง YouTube ได้แล้วลองใหม่อีกครั้ง',
-    'youtubeHandshakeDetail':
-        'ตรวจสอบเครือข่ายหรือการตั้งค่าพร็อกซีปัจจุบัน',
+    'youtubeHandshakeDetail': 'ตรวจสอบเครือข่ายหรือการตั้งค่าพร็อกซีปัจจุบัน',
     'douyinTimeoutDetail':
         'เครือข่ายปัจจุบันมักเข้าถึงหน้าการแชร์ของ Douyin ได้ไม่เสถียร',
     'douyinNetworkDetail':
         'ตรวจสอบว่าเครือข่ายปัจจุบันเข้าถึง Douyin ได้แล้วลองใหม่อีกครั้ง',
-    'douyinHandshakeDetail':
-        'ตรวจสอบเครือข่ายหรือการตั้งค่าพร็อกซีปัจจุบัน',
+    'douyinHandshakeDetail': 'ตรวจสอบเครือข่ายหรือการตั้งค่าพร็อกซีปัจจุบัน',
     'bilibiliTimeoutDetail': 'โปรดลองอีกครั้งภายหลัง',
     'bilibiliNetworkDetail': 'ตรวจสอบการเชื่อมต่อเครือข่ายแล้วลองอีกครั้ง',
     'bilibiliHandshakeDetail': 'ตรวจสอบสภาพแวดล้อมเครือข่ายปัจจุบัน',
@@ -1940,8 +1957,7 @@ const _localizedValues = <_AppLanguage, Map<String, String>>{
     'parserNetworkDetail': 'ตรวจสอบการเชื่อมต่อเครือข่ายแล้วลองอีกครั้ง',
     'parserHandshakeDetail': 'ตรวจสอบสภาพแวดล้อมเครือข่ายปัจจุบัน',
     'retryLaterDetail': 'ลองใหม่ภายหลังจะเสถียรกว่า',
-    'snapAnyRetryLaterDetail':
-        'รอสักครู่แล้วลองใหม่เพื่อความเสถียรที่ดีกว่า',
+    'snapAnyRetryLaterDetail': 'รอสักครู่แล้วลองใหม่เพื่อความเสถียรที่ดีกว่า',
     'snapAnyRateLimited':
         'SnapAny กำลังจำกัดความถี่ของคำขอในขณะนี้ โปรดลองอีกครั้งภายหลัง',
   },
